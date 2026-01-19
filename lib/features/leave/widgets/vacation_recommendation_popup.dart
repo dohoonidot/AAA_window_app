@@ -3,13 +3,11 @@
 /// 휴가 추천 결과를 표시하는 팝업
 
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ASPN_AI_AGENT/features/leave/models/vacation_recommendation_model.dart';
 import 'package:ASPN_AI_AGENT/features/leave/providers/vacation_recommendation_provider.dart';
 import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_recommendation_charts.dart';
-import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_recommendation_calendar_view.dart';
 import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_ui_constants.dart';
 import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_ui_components.dart';
 import 'package:ASPN_AI_AGENT/shared/utils/message_renderer/gpt_markdown_renderer.dart';
@@ -155,7 +153,7 @@ class MarkdownTableParser {
   }
 }
 
-/// 마크다운 표 위젯
+/// 마크다운 표 위젯 - 반응형 너비 지원
 class MarkdownTableWidget extends StatelessWidget {
   final List<List<String>> tableData;
   final bool isDarkTheme;
@@ -170,93 +168,92 @@ class MarkdownTableWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (tableData.isEmpty) return const SizedBox.shrink();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // 화면 너비에 맞게 컬럼 너비 계산
-        final tableWidth = constraints.maxWidth;
-        final columnCount = tableData.isNotEmpty ? tableData[0].length : 2;
+    final columnCount = tableData.isNotEmpty ? tableData[0].length : 2;
 
-        // 각 컬럼의 너비를 균등하게 분배 (패딩과 보더 고려)
-        final availableWidth = tableWidth - (columnCount - 1) * 0.5; // 보더 너비
-        final columnWidth = availableWidth / columnCount;
+    // FlexColumnWidth를 사용하여 반응형으로 컬럼 너비 분배
+    Map<int, TableColumnWidth> columnWidths = {};
+    for (int i = 0; i < columnCount; i++) {
+      // 첫 번째 컬럼(월)은 좁게, 두 번째 컬럼(날짜)은 넓게
+      columnWidths[i] = i == 0
+          ? const FlexColumnWidth(1)
+          : const FlexColumnWidth(3);
+    }
 
-        // 컬럼 너비 맵 생성
-        Map<int, TableColumnWidth> columnWidths = {};
-        for (int i = 0; i < columnCount; i++) {
-          columnWidths[i] = FixedColumnWidth(columnWidth);
-        }
-
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isDarkTheme ? const Color(0xFF3A3A3A) : Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: isDarkTheme ? const Color(0xFF3A3A3A) : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDarkTheme
+              ? const Color(0xFF505050)
+              : const Color(0xFFE9ECEF),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          columnWidths: columnWidths,
+          border: TableBorder(
+            horizontalInside: BorderSide(
               color: isDarkTheme
                   ? const Color(0xFF505050)
                   : const Color(0xFFE9ECEF),
-              width: 1,
+              width: 0.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            verticalInside: BorderSide(
+              color: isDarkTheme
+                  ? const Color(0xFF505050)
+                  : const Color(0xFFE9ECEF),
+              width: 0.5,
+            ),
           ),
-          child: Table(
-            columnWidths: columnWidths,
-            border: TableBorder(
-              horizontalInside: BorderSide(
-                color: isDarkTheme
-                    ? const Color(0xFF505050)
-                    : const Color(0xFFE9ECEF),
-                width: 0.5,
-              ),
-              verticalInside: BorderSide(
-                color: isDarkTheme
-                    ? const Color(0xFF505050)
-                    : const Color(0xFFE9ECEF),
-                width: 0.5,
-              ),
-            ),
-            children: tableData.asMap().entries.map((entry) {
-              final rowIndex = entry.key;
-              final row = entry.value;
-              final isHeader = rowIndex == 0;
+          children: tableData.asMap().entries.map((entry) {
+            final rowIndex = entry.key;
+            final row = entry.value;
+            final isHeader = rowIndex == 0;
 
-              return TableRow(
-                decoration: isHeader
-                    ? BoxDecoration(
-                        color: isDarkTheme
-                            ? const Color(0xFF4A4A4A)
-                            : const Color(0xFFF8F9FA),
-                      )
-                    : null,
-                children: row.map((cell) {
-                  return Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                    child: Text(
-                      cell,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            isHeader ? FontWeight.bold : FontWeight.normal,
-                        color: isDarkTheme ? Colors.white : Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
+            return TableRow(
+              decoration: isHeader
+                  ? BoxDecoration(
+                      color: isDarkTheme
+                          ? const Color(0xFF4A4A4A)
+                          : const Color(0xFFF8F9FA),
+                    )
+                  : null,
+              children: row.asMap().entries.map((cellEntry) {
+                final cellIndex = cellEntry.key;
+                final cell = cellEntry.value;
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Text(
+                    cell,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight:
+                          isHeader ? FontWeight.bold : FontWeight.normal,
+                      color: isDarkTheme ? Colors.white : Colors.black87,
                     ),
-                  );
-                }).toList(),
-              );
-            }).toList(),
-          ),
-        );
-      },
+                    textAlign: cellIndex == 0 ? TextAlign.center : TextAlign.left,
+                    softWrap: true,
+                  ),
+                );
+              }).toList(),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }
@@ -508,491 +505,578 @@ class _VacationRecommendationPopupState
   }
 
   /// 스크롤 가능한 내용 빌드 (진행률 바 제외)
+  /// 두 영역으로 분리: 사용자 경향 분석 / 추천 계획
   Widget _buildScrollableContent(
       VacationRecommendationResponse data, bool isDarkTheme) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. 분석 과정 (📊 이전 텍스트) - JSON 제외한 텍스트만 표시
-          if (data.reasoningContents.isNotEmpty &&
-              !data.isAfterAnalysisMarker) ...[
-            FadeInSection(
-              delay: 0,
-              child: _buildSectionTitle('📊 분석 과정', isDarkTheme),
-            ),
-            const SizedBox(height: 14),
-            FadeInSection(
-              delay: 100,
-              child: _buildReasoningText(
-                  data.reasoningContents, data.isComplete, isDarkTheme),
-            ),
-            const SizedBox(height: 28),
-          ],
+          // ═══════════════════════════════════════════════════════════════
+          // 영역 1: 사용자 경향 분석
+          // ═══════════════════════════════════════════════════════════════
+          _buildAnalysisSectionCard(data, isDarkTheme),
 
-          // 2. 과거 휴가 사용 내역 차트 (leaves JSON) - 그래프로만 표시
-          if (data.leavesData != null &&
-              data.leavesData!.monthlyUsage.isNotEmpty) ...[
-            FadeInSection(
-              delay: 200,
-              child: _buildSectionTitle('📈 과거 휴가 사용 내역', isDarkTheme),
-            ),
-            const SizedBox(height: 14),
-            FadeInSection(
-              delay: 300,
-              child: GradientCard(
-                isDarkTheme: isDarkTheme,
-                child: MonthlyDistributionChart(
-                  monthlyData: data.leavesData!.monthlyUsage,
-                  isDarkTheme: isDarkTheme,
+          const SizedBox(height: 24),
+
+          // ═══════════════════════════════════════════════════════════════
+          // 영역 2: 추천 계획 (📅 추천 날짜가 첫 번째)
+          // ═══════════════════════════════════════════════════════════════
+          if (data.isComplete)
+            _buildRecommendationSectionCard(data, isDarkTheme),
+        ],
+      ),
+    );
+  }
+
+  /// 영역 1: 사용자 경향 분석 카드
+  Widget _buildAnalysisSectionCard(
+      VacationRecommendationResponse data, bool isDarkTheme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkTheme
+              ? [const Color(0xFF2A2A2A), const Color(0xFF1E1E1E)]
+              : [Colors.white, const Color(0xFFF8F9FA)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color:
+              isDarkTheme ? const Color(0xFF3D3D3D) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDarkTheme ? 0.3 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 섹션 헤더
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.analytics_outlined,
+                  color: Colors.white,
+                  size: 20,
                 ),
               ),
-            ),
-            const SizedBox(height: 28),
+              const SizedBox(width: 14),
+              Text(
+                '사용자 경향 분석',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDarkTheme ? Colors.white : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // 1. 로딩 상태 메시지 (항상 표시)
+          if (data.reasoningContents.isNotEmpty) ...[
+            _buildLoadingStatusMessages(
+                data.reasoningContents, data.isComplete, isDarkTheme),
+            const SizedBox(height: 20),
           ],
 
-          // 4. 📊 이후 마크다운 스트리밍 (reasoning 중간부터)
-          if (data.isAfterAnalysisMarker &&
-              data.markdownBuffer.isNotEmpty &&
-              !data.isComplete) ...[
-            FadeInSection(
-              delay: 400,
-              child: _buildSectionTitle('💡 AI 분석 결과', isDarkTheme),
+          // 2. 과거 휴가 사용 내역 차트
+          if (data.leavesData != null &&
+              data.leavesData!.monthlyUsage.isNotEmpty) ...[
+            _buildSubSectionTitle('📈 과거 휴가 사용 내역', isDarkTheme),
+            const SizedBox(height: 12),
+            GradientCard(
+              isDarkTheme: isDarkTheme,
+              child: MonthlyDistributionChart(
+                monthlyData: data.leavesData!.monthlyUsage,
+                isDarkTheme: isDarkTheme,
+              ),
             ),
-            const SizedBox(height: 14),
-            FadeInSection(
-              delay: 500,
-              child: _buildMarkdownContent(data.markdownBuffer, isDarkTheme),
-            ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
           ],
 
-          // 5. finalResponseContents에서 파싱된 요일별 분포 (JSON에서)
-          // reasoning에서 온 weekdayCountsData와 구분하기 위해 isComplete일 때만 표시
+          // 3. 요일별 연차 사용량
           if (data.isComplete &&
               data.weekdayCountsData != null &&
               data.weekdayCountsData!.counts.isNotEmpty) ...[
-            FadeInSection(
-              delay: 600,
-              child: _buildSectionTitle('📊 요일별 연차 사용량', isDarkTheme),
-            ),
-            const SizedBox(height: 14),
-            FadeInSection(
-              delay: 700,
-              child: GradientCard(
+            _buildSubSectionTitle('📊 요일별 연차 사용량', isDarkTheme),
+            const SizedBox(height: 12),
+            GradientCard(
+              isDarkTheme: isDarkTheme,
+              child: WeekdayDistributionChart(
+                weekdayData: data.weekdayCountsData!.counts,
                 isDarkTheme: isDarkTheme,
-                child: WeekdayDistributionChart(
-                  weekdayData: data.weekdayCountsData!.counts,
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          // 4. 공휴일 인접 사용률
+          if (data.isComplete && data.holidayAdjacentUsageRate != null) ...[
+            _buildSubSectionTitle('🎯 공휴일 인접 사용률', isDarkTheme),
+            const SizedBox(height: 12),
+            GradientCard(
+              isDarkTheme: isDarkTheme,
+              padding: const EdgeInsets.all(12),
+              child: SizedBox(
+                height: 180,
+                child: HolidayAdjacentUsageRateChart(
+                  usageRate: data.holidayAdjacentUsageRate!,
                   isDarkTheme: isDarkTheme,
                 ),
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 20),
           ],
 
-          // 6. 공휴일 인접 사용률 원형 그래프
-          if (data.isComplete && data.holidayAdjacentUsageRate != null) ...[
-            FadeInSection(
-              delay: 800,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20), // 살짝 오른쪽으로 이동
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle('🎯 공휴일 인접 사용률', isDarkTheme),
-                    const SizedBox(height: 20), // 텍스트와 그래프 사이 간격 증가
-                    GradientCard(
-                      isDarkTheme: isDarkTheme,
-                      padding: const EdgeInsets.all(12),
-                      child: SizedBox(
-                        height: 180,
-                        child: HolidayAdjacentUsageRateChart(
-                          usageRate: data.holidayAdjacentUsageRate!,
-                          isDarkTheme: isDarkTheme,
-                        ),
-                      ),
-                    ),
-                  ],
+          // 5. 경향 분석 텍스트 (📊 이후 마크다운 - 스트리밍 중)
+          if (data.isAfterAnalysisMarker &&
+              data.markdownBuffer.isNotEmpty &&
+              !data.isComplete) ...[
+            _buildSubSectionTitle('💡 AI 분석 결과', isDarkTheme),
+            const SizedBox(height: 12),
+            _buildMarkdownContent(data.markdownBuffer, isDarkTheme),
+          ],
+
+          // 6. 완료 시 경향 분석 요약 텍스트 (finalResponseContents에서 추출)
+          if (data.isComplete && data.finalResponseContents.isNotEmpty) ...[
+            _buildAnalysisSummaryFromFinal(
+                data.finalResponseContents, isDarkTheme),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// 영역 2: 추천 계획 카드
+  Widget _buildRecommendationSectionCard(
+      VacationRecommendationResponse data, bool isDarkTheme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkTheme
+              ? [const Color(0xFF2A2A2A), const Color(0xFF1E1E1E)]
+              : [Colors.white, const Color(0xFFF8F9FA)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color:
+              isDarkTheme ? const Color(0xFF3D3D3D) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDarkTheme ? 0.3 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 섹션 헤더
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.lightbulb_outline,
+                  color: Colors.white,
+                  size: 20,
                 ),
               ),
-            ),
-            const SizedBox(height: 28),
-          ],
+              const SizedBox(width: 14),
+              Text(
+                '추천 계획',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDarkTheme ? Colors.white : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
 
-          // 7. 최종 응답 마크다운 (event: final) - 마크다운 렌더링 개선
-          if (data.isComplete && data.finalResponseContents.isNotEmpty) ...[
-            // "주요 연속 휴가 기간" 기준으로 분리
-            ..._buildSplitMarkdownContent(
+          // 1. 📅 추천 날짜 테이블 (첫 번째로 표시)
+          _buildRecommendedDatesTable(data.finalResponseContents, isDarkTheme),
+
+          // 2. ✍️ 연차 사용 계획 설명 (finalResponseContents에서 추출)
+          if (data.finalResponseContents.isNotEmpty) ...[
+            _buildRecommendationPlanFromFinal(
                 data.finalResponseContents, isDarkTheme),
           ],
 
-          // 분석 완료 후 기존 섹션들
-          if (data.isComplete) ...[
-            // 월별 분포 차트 (파싱된 데이터)
-            if (data.monthlyDistribution.isNotEmpty) ...[
-              FadeInSection(
-                delay: 1200,
-                child: _buildSectionTitle('📈 월별 연차 사용 분포', isDarkTheme),
+          // 3. 월별 분포 차트
+          if (data.monthlyDistribution.isNotEmpty) ...[
+            _buildSubSectionTitle('📈 월별 연차 사용 분포', isDarkTheme),
+            const SizedBox(height: 12),
+            GradientCard(
+              isDarkTheme: isDarkTheme,
+              child: MonthlyDistributionChart(
+                monthlyData: data.monthlyDistribution,
+                isDarkTheme: isDarkTheme,
               ),
-              const SizedBox(height: 14),
-              FadeInSection(
-                delay: 1300,
-                child: GradientCard(
-                  isDarkTheme: isDarkTheme,
-                  child: MonthlyDistributionChart(
-                    monthlyData: data.monthlyDistribution,
-                    isDarkTheme: isDarkTheme,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
-            ],
-
-            // 추천 날짜 캘린더 그리드
-            if (data.recommendedDates.isNotEmpty) ...[
-              FadeInSection(
-                delay: 1400,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle('📅 추천 휴가 날짜', isDarkTheme),
-                    const SizedBox(height: 10),
-                    Text(
-                      '추천된 날짜는 파란색으로 표시됩니다.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color:
-                            isDarkTheme ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              FadeInSection(
-                delay: 1500,
-                child: GradientCard(
-                  isDarkTheme: isDarkTheme,
-                  padding: const EdgeInsets.all(16),
-                  child: VacationCalendarGrid(
-                    recommendedDates: data.recommendedDates,
-                    isDarkTheme: isDarkTheme,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
-            ],
-
-            // 연속 휴가 기간 - 각 기간을 별도의 카드로 표시
-            if (data.consecutivePeriods.isNotEmpty) ...[
-              FadeInSection(
-                delay: 1600,
-                child: _buildSectionTitle('🏖️ 주요 연속 휴가 기간', isDarkTheme),
-              ),
-              const SizedBox(height: 14),
-              ...data.consecutivePeriods.asMap().entries.map((entry) {
-                final index = entry.key;
-                final period = entry.value;
-                return FadeInSection(
-                  delay: 1700 + (index * 100),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isDarkTheme
-                            ? VacationUIColors.darkCardGradient
-                            : VacationUIColors.lightCardGradient,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: const Color(0xFF667EEA).withOpacity(0.3),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF667EEA).withOpacity(0.1),
-                          blurRadius: 20,
-                          spreadRadius: 0,
-                          offset: const Offset(0, 4),
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const GradientIconContainer(
-                              icon: Icons.calendar_today,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${period.startDate} ~ ${period.endDate}',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    isDarkTheme ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    const Color(0xFF667EEA).withOpacity(0.2),
-                                    const Color(0xFF764BA2).withOpacity(0.2),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color:
-                                      const Color(0xFF667EEA).withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                '${period.days}일',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF667EEA),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          period.description,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: isDarkTheme
-                                ? Colors.grey[300]
-                                : Colors.grey[700],
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-              const SizedBox(height: 28),
-            ],
+            ),
+            const SizedBox(height: 24),
           ],
+
+          // 4. 🏖️ 주요 연속 휴가 기간 (마크다운에서 직접 추출)
+          _buildConsecutivePeriodsFromMarkdown(
+              data.finalResponseContents, isDarkTheme),
         ],
       ),
     );
   }
 
-  /// 섹션 제목 빌드
-  Widget _buildSectionTitle(String title, bool isDarkTheme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          // 그라데이션 액센트 바
-          Container(
-            width: 4,
-            height: 24,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: VacationUIColors.primaryGradient,
-              ),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: isDarkTheme ? Colors.white : const Color(0xFF1A1D29),
-              letterSpacing: -0.5,
-              height: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 분석 과정 텍스트 빌드
-  Widget _buildReasoningText(String text, bool isComplete, bool isDarkTheme) {
-    // JSON 데이터 제거 (leaves, weekday_counts 관련 텍스트 제거)
-    String cleanedText = text;
-
-    // weekday_counts나 leaves가 포함된 라인 전체 제거
-    final lines = cleanedText.split('\n');
-    final filteredLines = <String>[];
+  /// 로딩 상태 메시지 빌드 (항상 표시)
+  Widget _buildLoadingStatusMessages(
+      String text, bool isComplete, bool isDarkTheme) {
+    // 로딩 상태 메시지 추출 (📥, 👥, 🗓️, 🧾, ✨, 📊 로 시작하는 줄)
+    final lines = text.split('\n');
+    final statusLines = <String>[];
 
     for (final line in lines) {
-      // weekday_counts나 leaves가 포함된 라인은 제외
-      if (!line.contains('weekday_counts') &&
-          !line.contains('"leaves"') &&
-          !line.contains('holiday_adjacent') &&
-          !line.contains('total_leave_days')) {
-        filteredLines.add(line);
+      final trimmed = line.trim();
+      if (trimmed.startsWith('📥') ||
+          trimmed.startsWith('👥') ||
+          trimmed.startsWith('🗓️') ||
+          trimmed.startsWith('🧾') ||
+          trimmed.startsWith('✨') ||
+          trimmed.startsWith('📊')) {
+        statusLines.add(trimmed);
       }
     }
 
-    cleanedText = filteredLines.join('\n');
-
-    // JSON 형식의 텍스트 제거 (더 강력한 패턴 매칭)
-    // 1. {로 시작하는 JSON 제거
-    cleanedText = cleanedText.replaceAll(
-        RegExp(r'\{[^{}]*"leaves"[^{}]*\}', dotAll: true), '');
-    cleanedText = cleanedText.replaceAll(
-        RegExp(r'\{[^{}]*"weekday_counts"[^{}]*\}', dotAll: true), '');
-
-    // 2. 앞에 텍스트가 있는 경우 (예: short{"weekday_counts":...})
-    cleanedText = cleanedText.replaceAll(
-        RegExp(r'[^{]*\{[^{}]*"leaves"[^{}]*\}[^}]*', dotAll: true), '');
-    cleanedText = cleanedText.replaceAll(
-        RegExp(r'[^{]*\{[^{}]*"weekday_counts"[^{}]*\}[^}]*', dotAll: true),
-        '');
-
-    // 3. 중첩된 JSON도 처리 (더 복잡한 패턴)
-    cleanedText = cleanedText.replaceAll(
-        RegExp(r'\{[^{}]*\{[^{}]*"leaves"[^{}]*\}[^{}]*\}', dotAll: true), '');
-    cleanedText = cleanedText.replaceAll(
-        RegExp(r'\{[^{}]*\{[^{}]*"weekday_counts"[^{}]*\}[^{}]*\}',
-            dotAll: true),
-        '');
-
-    // 빈 줄 정리
-    cleanedText = cleanedText.replaceAll(RegExp(r'\n\s*\n\s*\n'), '\n\n');
-    cleanedText = cleanedText.trim();
-
-    if (cleanedText.isEmpty) {
+    if (statusLines.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(VacationUIRadius.large),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDarkTheme
-                  ? [
-                      const Color(0xFF3A3A3A).withOpacity(0.7),
-                      const Color(0xFF2D2D2D).withOpacity(0.5),
-                    ]
-                  : [
-                      Colors.white.withOpacity(0.7),
-                      const Color(0xFFF8F9FA).withOpacity(0.5),
-                    ],
-            ),
-            borderRadius: BorderRadius.circular(VacationUIRadius.large),
-            border: Border.all(
-              color: isDarkTheme
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.05),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: isDarkTheme
-                    ? Colors.black.withOpacity(0.3)
-                    : Colors.black.withOpacity(0.05),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isComplete)
-                Container(
-                  width: 20,
-                  height: 20,
-                  margin: const EdgeInsets.only(right: 14, top: 2),
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
-                  ),
-                ),
-              Expanded(
-                child: Text(
-                  cleanedText,
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.8,
-                    fontWeight: FontWeight.w400,
-                    color: isDarkTheme ? Colors.grey[300] : Colors.grey[800],
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDarkTheme
+            ? const Color(0xFF1E1E1E).withOpacity(0.6)
+            : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color:
+              isDarkTheme ? const Color(0xFF3D3D3D) : const Color(0xFFE2E8F0),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isComplete ? Icons.check_circle : Icons.hourglass_top,
+                size: 16,
+                color: isComplete
+                    ? const Color(0xFF10B981)
+                    : const Color(0xFF6366F1),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isComplete ? '데이터 로드 완료' : '데이터 로드 중...',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDarkTheme ? Colors.white : const Color(0xFF374151),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...statusLines.map((line) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  line,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.5,
+                    color: isDarkTheme ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              )),
+        ],
       ),
     );
   }
 
-  /// "주요 연속 휴가 기간"을 기준으로 마크다운을 분리하여 표시
-  List<Widget> _buildSplitMarkdownContent(String markdown, bool isDarkTheme) {
-    final List<Widget> widgets = [];
+  /// 서브 섹션 제목 빌드
+  Widget _buildSubSectionTitle(String title, bool isDarkTheme) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: isDarkTheme ? Colors.white : const Color(0xFF374151),
+      ),
+    );
+  }
 
-    // "주요 연속 휴가 기간" 기준으로 분리
-    final splitKeyword = '**주요 연속 휴가 기간:**';
-    final splitIndex = markdown.indexOf(splitKeyword);
+  /// 추천 날짜 테이블 빌드 (MarkdownTableWidget 사용)
+  Widget _buildRecommendedDatesTable(String content, bool isDarkTheme) {
+    // 📅 추천 날짜 부분 추출
+    final recommendIndex = content.indexOf('📅');
+    if (recommendIndex == -1) return const SizedBox.shrink();
 
-    if (splitIndex != -1) {
-      // 분리되는 경우
-      final beforePart = markdown.substring(0, splitIndex).trim();
-      final afterPart = markdown.substring(splitIndex).trim();
+    // 📅 이후부터 테이블 끝까지 추출
+    final afterRecommend = content.substring(recommendIndex);
 
-      // 앞부분: 추천 계획
-      if (beforePart.isNotEmpty) {
-        widgets.add(_buildSectionTitle('📋 추천 계획', isDarkTheme));
-        widgets.add(const SizedBox(height: 14));
-        widgets.add(_buildMarkdownContent(beforePart, isDarkTheme));
-        widgets.add(const SizedBox(height: 28));
+    // 테이블 부분만 추출 (| 로 시작하는 줄들)
+    final lines = afterRecommend.split('\n');
+    final tableLines = <String>[];
+    bool tableStarted = false;
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.startsWith('|')) {
+        tableStarted = true;
+        tableLines.add(trimmed);
+      } else if (tableStarted && trimmed.isEmpty) {
+        break; // 테이블 끝
+      } else if (tableStarted && !trimmed.startsWith('|')) {
+        break; // 테이블 끝
       }
-
-      // 뒷부분: 주요 연속 휴가 기간
-      if (afterPart.isNotEmpty) {
-        widgets.add(_buildSectionTitle('🗓️ 주요 연속 휴가 기간', isDarkTheme));
-        widgets.add(const SizedBox(height: 14));
-        // "**주요 연속 휴가 기간:**" 헤더 제거하고 내용만 표시
-        final contentOnly = afterPart.replaceFirst(splitKeyword, '').trim();
-        widgets.add(_buildMarkdownContent(contentOnly, isDarkTheme));
-        widgets.add(const SizedBox(height: 28));
-      }
-    } else {
-      // 분리되지 않는 경우 기존 방식대로
-      widgets.add(_buildSectionTitle('📋 추천 계획', isDarkTheme));
-      widgets.add(const SizedBox(height: 14));
-      widgets.add(_buildMarkdownContent(markdown, isDarkTheme));
-      widgets.add(const SizedBox(height: 28));
     }
 
-    return widgets;
+    if (tableLines.isEmpty) return const SizedBox.shrink();
+
+    // 테이블 데이터 파싱
+    final tableData = MarkdownTableParser.parseTable(tableLines.join('\n'));
+    if (tableData == null || tableData.isEmpty) return const SizedBox.shrink();
+
+    // 📅 제목 줄에서 총 일수 추출
+    String titleText = '📅 추천 휴가 날짜';
+    final titleLine = lines.firstWhere(
+      (l) => l.contains('📅'),
+      orElse: () => '',
+    );
+    if (titleLine.contains('(') && titleLine.contains(')')) {
+      final match = RegExp(r'\((\d+)일\)').firstMatch(titleLine);
+      if (match != null) {
+        titleText = '📅 추천 휴가 날짜 (${match.group(1)}일)';
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSubSectionTitle(titleText, isDarkTheme),
+        const SizedBox(height: 12),
+        MarkdownTableWidget(
+          tableData: tableData,
+          isDarkTheme: isDarkTheme,
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  /// 주요 연속 휴가 기간 마크다운에서 직접 추출
+  Widget _buildConsecutivePeriodsFromMarkdown(
+      String content, bool isDarkTheme) {
+    // \n을 실제 줄바꿈으로 변환
+    String processedContent = content
+        .replaceAll('\\n', '\n')
+        .replaceAll(RegExp(r'\r\n'), '\n')
+        .replaceAll(RegExp(r'\r'), '\n');
+
+    // "**주요 연속 휴가 기간:**" 이후 부분 추출
+    final periodKeyword = '**주요 연속 휴가 기간:**';
+    final periodIndex = processedContent.indexOf(periodKeyword);
+
+    if (periodIndex == -1) return const SizedBox.shrink();
+
+    // 키워드 이후의 내용 추출
+    final afterPeriod =
+        processedContent.substring(periodIndex + periodKeyword.length);
+
+    // 휴가 기간 라인들 추출 (공백이 아닌 줄들)
+    final lines = afterPeriod.split('\n');
+    final periodLines = <String>[];
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+      // 날짜 패턴이 포함된 줄만 추출
+      if (trimmed.contains(RegExp(r'\d{4}-\d{2}-\d{2}')) ||
+          trimmed.contains('징검다리') ||
+          trimmed.contains('연휴')) {
+        periodLines.add(trimmed);
+      }
+    }
+
+    if (periodLines.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSubSectionTitle('🏖️ 주요 연속 휴가 기간', isDarkTheme),
+        const SizedBox(height: 12),
+        ...periodLines.map((line) {
+          // 앞의 - 또는 • 제거하고 \n 처리
+          String displayText = line
+              .replaceFirst(RegExp(r'^\s*[-•]\s*'), '')
+              .replaceAll('\\n', '\n');
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDarkTheme
+                    ? VacationUIColors.darkCardGradient
+                    : VacationUIColors.lightCardGradient,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF667EEA).withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: GradientIconContainer(
+                    icon: Icons.calendar_today,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    displayText,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isDarkTheme ? Colors.white : Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  /// finalResponseContents에서 경향 분석 요약 추출
+  Widget _buildAnalysisSummaryFromFinal(String content, bool isDarkTheme) {
+    // 📅 추천 날짜 이전까지의 내용 중 분석 관련 텍스트 추출
+    final recommendIndex = content.indexOf('📅');
+    final analysisContent =
+        recommendIndex != -1 ? content.substring(0, recommendIndex) : '';
+
+    // 분석 요약이 있는 경우에만 표시
+    if (analysisContent.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // JSON 데이터 제거
+    final cleanedContent = _removeJsonDataFromMarkdown(analysisContent);
+
+    if (cleanedContent.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSubSectionTitle('💡 경향 분석 요약', isDarkTheme),
+        const SizedBox(height: 12),
+        _buildMarkdownContent(cleanedContent, isDarkTheme),
+      ],
+    );
+  }
+
+  /// finalResponseContents에서 추천 계획 설명 추출
+  Widget _buildRecommendationPlanFromFinal(String content, bool isDarkTheme) {
+    // 📅 추천 날짜 이후, 주요 연속 휴가 기간 이전의 내용 추출
+    final recommendIndex = content.indexOf('📅');
+    final periodKeyword = '**주요 연속 휴가 기간:**';
+    final periodIndex = content.indexOf(periodKeyword);
+
+    String planContent = '';
+
+    if (recommendIndex != -1) {
+      // 📅 이후부터
+      final afterRecommend = content.substring(recommendIndex);
+
+      // 테이블 끝 찾기 (빈 줄 이후)
+      final tableEndRegex = RegExp(r'\|\s*\d+월\s*\|[^\n]*\n\s*\n');
+      final tableEndMatch = tableEndRegex.firstMatch(afterRecommend);
+
+      if (tableEndMatch != null) {
+        final afterTable = afterRecommend.substring(tableEndMatch.end);
+
+        // 주요 연속 휴가 기간 이전까지
+        final localPeriodIndex = afterTable.indexOf(periodKeyword);
+        if (localPeriodIndex != -1) {
+          planContent = afterTable.substring(0, localPeriodIndex);
+        } else {
+          planContent = afterTable;
+        }
+      } else if (periodIndex != -1 && periodIndex > recommendIndex) {
+        // 테이블이 없는 경우
+        planContent = content.substring(recommendIndex, periodIndex);
+        // 📅 줄 제거
+        final firstNewline = planContent.indexOf('\n');
+        if (firstNewline != -1) {
+          planContent = planContent.substring(firstNewline + 1);
+        }
+      }
+    }
+
+    // JSON 데이터 제거
+    planContent = _removeJsonDataFromMarkdown(planContent);
+
+    if (planContent.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSubSectionTitle('✍️ 연차 사용 계획 설명', isDarkTheme),
+        const SizedBox(height: 12),
+        _buildMarkdownContent(planContent, isDarkTheme),
+        const SizedBox(height: 24),
+      ],
+    );
   }
 
   /// 마크다운 렌더링 위젯 - GptMarkdownRenderer 사용
