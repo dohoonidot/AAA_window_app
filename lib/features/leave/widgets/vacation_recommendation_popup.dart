@@ -170,92 +170,132 @@ class MarkdownTableWidget extends StatelessWidget {
 
     final columnCount = tableData.isNotEmpty ? tableData[0].length : 2;
 
-    // FlexColumnWidth를 사용하여 반응형으로 컬럼 너비 분배
-    Map<int, TableColumnWidth> columnWidths = {};
-    for (int i = 0; i < columnCount; i++) {
-      // 첫 번째 컬럼(월)은 좁게, 두 번째 컬럼(날짜)은 넓게
-      columnWidths[i] = i == 0
-          ? const FlexColumnWidth(1)
-          : const FlexColumnWidth(3);
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tableWidth = constraints.hasBoundedWidth
+            ? constraints.maxWidth.clamp(0, 500)
+            : 500.0;
+        final columnWidths = calculateResponsiveColumnWidths(
+          constraints: constraints,
+          columnCount: columnCount,
+          borderWidth: 0.5,
+          tableWidth: tableWidth.toDouble(),
+        );
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: isDarkTheme ? const Color(0xFF3A3A3A) : Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDarkTheme
-              ? const Color(0xFF505050)
-              : const Color(0xFFE9ECEF),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          columnWidths: columnWidths,
-          border: TableBorder(
-            horizontalInside: BorderSide(
-              color: isDarkTheme
-                  ? const Color(0xFF505050)
-                  : const Color(0xFFE9ECEF),
-              width: 0.5,
-            ),
-            verticalInside: BorderSide(
-              color: isDarkTheme
-                  ? const Color(0xFF505050)
-                  : const Color(0xFFE9ECEF),
-              width: 0.5,
-            ),
-          ),
-          children: tableData.asMap().entries.map((entry) {
-            final rowIndex = entry.key;
-            final row = entry.value;
-            final isHeader = rowIndex == 0;
-
-            return TableRow(
-              decoration: isHeader
-                  ? BoxDecoration(
-                      color: isDarkTheme
-                          ? const Color(0xFF4A4A4A)
-                          : const Color(0xFFF8F9FA),
-                    )
-                  : null,
-              children: row.asMap().entries.map((cellEntry) {
-                final cellIndex = cellEntry.key;
-                final cell = cellEntry.value;
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Text(
-                    cell,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight:
-                          isHeader ? FontWeight.bold : FontWeight.normal,
-                      color: isDarkTheme ? Colors.white : Colors.black87,
-                    ),
-                    textAlign: cellIndex == 0 ? TextAlign.center : TextAlign.left,
-                    softWrap: true,
+        return Align(
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: tableWidth.toDouble(),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: isDarkTheme ? const Color(0xFF3A3A3A) : Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDarkTheme
+                      ? const Color(0xFF505050)
+                      : const Color(0xFFE9ECEF),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
-                );
-              }).toList(),
-            );
-          }).toList(),
-        ),
-      ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Table(
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  columnWidths: columnWidths,
+                  border: TableBorder(
+                    horizontalInside: BorderSide(
+                      color: isDarkTheme
+                          ? const Color(0xFF505050)
+                          : const Color(0xFFE9ECEF),
+                      width: 0.5,
+                    ),
+                    verticalInside: BorderSide(
+                      color: isDarkTheme
+                          ? const Color(0xFF505050)
+                          : const Color(0xFFE9ECEF),
+                      width: 0.5,
+                    ),
+                  ),
+                  children: tableData.asMap().entries.map((entry) {
+                    final rowIndex = entry.key;
+                    final row = entry.value;
+                    final isHeader = rowIndex == 0;
+
+                    return TableRow(
+                      decoration: isHeader
+                          ? BoxDecoration(
+                              color: isDarkTheme
+                                  ? const Color(0xFF4A4A4A)
+                                  : const Color(0xFFF8F9FA),
+                            )
+                          : null,
+                      children: row.asMap().entries.map((cellEntry) {
+                        final cellIndex = cellEntry.key;
+                        final cell = cellEntry.value;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            cell,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isHeader
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color:
+                                  isDarkTheme ? Colors.white : Colors.black87,
+                            ),
+                            textAlign: cellIndex == 0
+                                ? TextAlign.center
+                                : TextAlign.left,
+                            softWrap: true,
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
+}
+
+/// 반응형 테이블 컬럼 너비 계산 함수
+Map<int, TableColumnWidth> calculateResponsiveColumnWidths({
+  required BoxConstraints constraints,
+  required int columnCount,
+  double borderWidth = 0.5,
+  double? tableWidth,
+}) {
+  if (!constraints.hasBoundedWidth || !constraints.maxWidth.isFinite) {
+    return {
+      for (int i = 0; i < columnCount; i++) i: const FlexColumnWidth(),
+    };
+  }
+
+  final resolvedTableWidth = (tableWidth != null && tableWidth.isFinite)
+      ? tableWidth
+      : constraints.maxWidth;
+  final availableWidth = resolvedTableWidth - (columnCount - 1) * borderWidth;
+  final columnWidth = availableWidth / columnCount;
+
+  return {
+    for (int i = 0; i < columnCount; i++) i: FixedColumnWidth(columnWidth),
+  };
 }
 
 /// AI 휴가 추천 모달
@@ -1104,6 +1144,7 @@ class _VacationRecommendationPopupState
         processedMarkdown,
         themeColors: themeColors,
         role: 1,
+        maxWidthFactor: 0.67,
         style: TextStyle(
           fontSize: 14,
           height: 1.8,
