@@ -255,8 +255,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                         icon: Icons.edit_calendar_rounded,
                         iconColor: const Color(0xFF10B981),
                         title: '휴가 신청',
-                        description:
-                            '상단의 "휴가 신청" 버튼을 클릭하여 새로운 휴가를 신청할 수 있습니다. '
+                        description: '상단의 "휴가 신청" 버튼을 클릭하여 새로운 휴가를 신청할 수 있습니다. '
                             '휴가 종류, 시작일/종료일, 사유를 입력하고 결재자를 선택한 후 제출하세요.',
                         isDarkTheme: isDarkTheme,
                       ),
@@ -265,10 +264,10 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                         icon: Icons.calendar_month_rounded,
                         iconColor: const Color(0xFF8B5CF6),
                         title: '휴가 캘린더',
-                        description:
-                            '월별 휴가 현황과 공휴일을 한눈에 확인할 수 있습니다. '
+                        description: '월별 휴가 현황과 공휴일을 한눈에 확인할 수 있습니다. '
                             '날짜를 클릭하면 해당 날짜의 휴가 상세 정보가 표시됩니다. '
-                            '좌우 화살표로 월을 이동하세요.',
+                            '좌우 화살표로 월을 이동하세요. 넓게보기 버튼을 누르면 '
+                            '넓은 달력이 표시됩니다.',
                         isDarkTheme: isDarkTheme,
                       ),
                       const SizedBox(height: 14),
@@ -276,8 +275,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                         icon: Icons.table_chart_rounded,
                         iconColor: const Color(0xFFF59E0B),
                         title: '휴가 관리 대장',
-                        description:
-                            '올해 연차 발생일수, 사용일수, 잔여일수를 확인할 수 있습니다. '
+                        description: '올해 연차 발생일수, 사용일수, 잔여일수를 확인할 수 있습니다. '
                             '하단 테이블에서 휴가 사용 내역을 상세히 조회하고, '
                             '행을 클릭하면 해당 휴가의 결재 상태를 확인할 수 있습니다.',
                         isDarkTheme: isDarkTheme,
@@ -297,9 +295,10 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                         icon: Icons.menu_rounded,
                         iconColor: const Color(0xFFEC4899),
                         title: '사이드바 메뉴',
-                        description:
-                            '왼쪽 사이드바에서 휴가 신청, AI 휴가 추천, 연차 부여 내역, '
+                        description: '왼쪽 사이드바에서 휴가 신청, AI 휴가 추천, 연차 부여 내역, '
                             '연차 촉진 안내문 등 다양한 기능에 빠르게 접근할 수 있습니다. '
+                            '달력이 있고, 휴가관리자(경영관리실)에 예비군/민방위, 결혼, '
+                            '경조사 연차 부여 요청 내역을 볼 수 있습니다. '
                             '핀 아이콘을 클릭하면 사이드바를 고정할 수 있습니다.',
                         isDarkTheme: isDarkTheme,
                       ),
@@ -818,6 +817,14 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     );
   }
 
+  /// 휴가 AI 작성 메뉴얼 모달 표시
+  void _showLeaveAIManualModal() {
+    showDialog(
+      context: context,
+      builder: (context) => _buildLeaveAIManualDialog(),
+    );
+  }
+
   Widget _buildAdminButton() {
     // 승인자 여부 확인 - 승인자만 버튼 표시
     final isApprover = ref.read(approverProvider);
@@ -917,6 +924,27 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
             '휴가 작성',
             style: TextStyle(
               fontSize: _getResponsiveFontSize(context, 13),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // 휴가 AI 작성 메뉴얼 버튼
+        ElevatedButton.icon(
+          onPressed: _showLeaveAIManualModal,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF10B981),
+            foregroundColor: Colors.white,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          icon: const Icon(Icons.help_outline, size: 18),
+          label: Text(
+            '휴가 AI 작성 메뉴얼',
+            style: TextStyle(
+              fontSize: _getResponsiveFontSize(context, 12),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -4952,4 +4980,175 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     }
   }
 
+  /// 휴가 AI 작성 메뉴얼 다이얼로그 위젯
+  Widget _buildLeaveAIManualDialog() {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        width: 700,
+        height: 600,
+        decoration: BoxDecoration(
+          color: isDarkTheme ? const Color(0xFF1A1D1F) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            // 헤더
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDarkTheme
+                        ? const Color(0xFF2D3748)
+                        : const Color(0xFFE9ECEF),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A6CF7).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.smart_toy_outlined,
+                      color: Color(0xFF4A6CF7),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      '휴가 AI 작성 메뉴얼',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: isDarkTheme
+                            ? Colors.white
+                            : const Color(0xFF1A1D1F),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Color(0xFF8B95A1),
+                    ),
+                    tooltip: '닫기',
+                  ),
+                ],
+              ),
+            ),
+            // 내용
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. 휴가상신
+                    _buildManualSection(
+                      title: '1. 휴가상신',
+                      icon: Icons.edit_note,
+                      content:
+                          '사내업무에서 "날짜, 연차종류, 반차여부, 사유(미작성시 개인사유) 입력하여 휴가 상신 요청"\n\n'
+                          '예시:\n'
+                          '• "내일 휴가써줘"\n'
+                          '• "3월4일 휴가써줘 반차로"\n'
+                          '• "다음주 화요일 오후반차써줘"\n\n'
+                          'AI 말고 직접 작성시에는 사이드바의 휴가관리 → "휴가 작성"을 통해 하시면 됩니다.',
+                      isDarkTheme: isDarkTheme,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 2. 휴가 부여 상신
+                    _buildManualSection(
+                      title: '2. 휴가 부여 상신',
+                      icon: Icons.assignment_turned_in,
+                      content:
+                          '사내업무에서 예비군부여의 경우 예비군 관련 서류 첨부하여 채팅으로 "예비군 휴가 부여좀 해줘" 요청시\n\n'
+                          '"휴가 부여 상신 전자결재 폼 자동 작성 → 관리자(경영관리실) 승인 → AAA 해당 예비군 연차 상신 폼 자동 작성 → 상신(수정 필요할시 수정후 상신)"\n\n'
+                          '마찬가지로, 처음부터 직접 작성하고 싶을경우 채팅방 상단 메뉴중 "전자결재 상신 초안" 클릭하여 작성하면 됩니다.',
+                      isDarkTheme: isDarkTheme,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 3. 전자결재 승인자/참조자 저장
+                    _buildManualSection(
+                      title: '3. 전자결재 승인자/참조자 저장',
+                      icon: Icons.people_outline,
+                      content: '전자결재의 경우 승인자, 참조자를 저장 할수있습니다.\n\n'
+                          '휴가 상신시와 다르게 저장됩니다. 서로 연관없음.',
+                      isDarkTheme: isDarkTheme,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 메뉴얼 섹션 위젯 헬퍼
+  Widget _buildManualSection({
+    required String title,
+    required IconData icon,
+    required String content,
+    required bool isDarkTheme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDarkTheme ? const Color(0xFF2D3748) : const Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color:
+              isDarkTheme ? const Color(0xFF4A5568) : const Color(0xFFE9ECEF),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: const Color(0xFF4A6CF7),
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDarkTheme ? Colors.white : const Color(0xFF1A1D1F),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.6,
+              color: isDarkTheme ? Colors.grey[300] : const Color(0xFF4B5563),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
