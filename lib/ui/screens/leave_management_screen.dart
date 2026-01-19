@@ -33,11 +33,6 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
   final _chatController = TextEditingController();
   final _chatScrollController = ScrollController();
 
-  final GlobalKey _approvalStatusKey = GlobalKey();
-  final GlobalKey _calendarSectionKey = GlobalKey();
-  final GlobalKey _leaveTableKey = GlobalKey();
-  final GlobalKey _leaveWriteButtonKey = GlobalKey();
-
   bool _isSidebarExpanded = false;
   bool _isSidebarPinned = false;
   bool _isTableExpanded = false;
@@ -56,10 +51,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
 
   // 휴가 상세내역 모달 상태
   bool _isLeaveDetailModalVisible = false;
-  bool _isManualOverlayVisible = false;
   LeaveRequestHistory? _selectedLeaveDetail;
-
-  Map<String, Rect> _manualTargetRects = {};
 
   // 연도 필터 상태
   int _selectedYear = DateTime.now().year;
@@ -156,49 +148,273 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     super.dispose();
   }
 
-  void _openManualOverlay() {
-    setState(() {
-      _isManualOverlayVisible = true;
-    });
-    _scheduleManualTargetUpdate();
+  void _showManualDialog() {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 520),
+          decoration: BoxDecoration(
+            color: isDarkTheme ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 헤더
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDarkTheme
+                      ? const Color(0xFF2D2D2D)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isDarkTheme
+                          ? const Color(0xFF3D3D3D)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.help_outline_rounded,
+                        color: Color(0xFF3B82F6),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '휴가관리 사용 가이드',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: isDarkTheme
+                                  ? Colors.white
+                                  : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '각 기능에 대한 설명입니다',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDarkTheme
+                                  ? Colors.grey[400]
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: isDarkTheme
+                            ? Colors.grey[400]
+                            : const Color(0xFF94A3B8),
+                      ),
+                      splashRadius: 20,
+                    ),
+                  ],
+                ),
+              ),
+
+              // 본문
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildManualItem(
+                        icon: Icons.edit_calendar_rounded,
+                        iconColor: const Color(0xFF10B981),
+                        title: '휴가 신청',
+                        description:
+                            '상단의 "휴가 신청" 버튼을 클릭하여 새로운 휴가를 신청할 수 있습니다. '
+                            '휴가 종류, 시작일/종료일, 사유를 입력하고 결재자를 선택한 후 제출하세요.',
+                        isDarkTheme: isDarkTheme,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildManualItem(
+                        icon: Icons.calendar_month_rounded,
+                        iconColor: const Color(0xFF8B5CF6),
+                        title: '휴가 캘린더',
+                        description:
+                            '월별 휴가 현황과 공휴일을 한눈에 확인할 수 있습니다. '
+                            '날짜를 클릭하면 해당 날짜의 휴가 상세 정보가 표시됩니다. '
+                            '좌우 화살표로 월을 이동하세요.',
+                        isDarkTheme: isDarkTheme,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildManualItem(
+                        icon: Icons.table_chart_rounded,
+                        iconColor: const Color(0xFFF59E0B),
+                        title: '휴가 관리 대장',
+                        description:
+                            '올해 연차 발생일수, 사용일수, 잔여일수를 확인할 수 있습니다. '
+                            '하단 테이블에서 휴가 사용 내역을 상세히 조회하고, '
+                            '행을 클릭하면 해당 휴가의 결재 상태를 확인할 수 있습니다.',
+                        isDarkTheme: isDarkTheme,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildManualItem(
+                        icon: Icons.approval_rounded,
+                        iconColor: const Color(0xFF3B82F6),
+                        title: '결재 현황',
+                        description:
+                            '상단에서 결재 진행 상태(대기/승인/반려)를 실시간으로 확인할 수 있습니다. '
+                            '각 상태를 클릭하면 해당 상태의 휴가 목록만 필터링하여 볼 수 있습니다.',
+                        isDarkTheme: isDarkTheme,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildManualItem(
+                        icon: Icons.menu_rounded,
+                        iconColor: const Color(0xFFEC4899),
+                        title: '사이드바 메뉴',
+                        description:
+                            '왼쪽 사이드바에서 휴가 신청, AI 휴가 추천, 연차 부여 내역, '
+                            '연차 촉진 안내문 등 다양한 기능에 빠르게 접근할 수 있습니다. '
+                            '핀 아이콘을 클릭하면 사이드바를 고정할 수 있습니다.',
+                        isDarkTheme: isDarkTheme,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 푸터
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: BoxDecoration(
+                  color: isDarkTheme
+                      ? const Color(0xFF2D2D2D)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius:
+                      const BorderRadius.vertical(bottom: Radius.circular(16)),
+                  border: Border(
+                    top: BorderSide(
+                      color: isDarkTheme
+                          ? const Color(0xFF3D3D3D)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFF3B82F6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        '확인',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
-  void _closeManualOverlay() {
-    setState(() {
-      _isManualOverlayVisible = false;
-      _manualTargetRects = {};
-    });
-  }
-
-  void _scheduleManualTargetUpdate() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_isManualOverlayVisible) return;
-
-      Rect? rectForKey(GlobalKey key) {
-        final context = key.currentContext;
-        if (context == null) return null;
-        final renderObject = context.findRenderObject();
-        if (renderObject is! RenderBox || !renderObject.hasSize) return null;
-        final topLeft = renderObject.localToGlobal(Offset.zero);
-        return topLeft & renderObject.size;
-      }
-
-      final approvalRect = rectForKey(_approvalStatusKey);
-      final calendarRect = rectForKey(_calendarSectionKey);
-      final tableRect = rectForKey(_leaveTableKey);
-      final writeRect = rectForKey(_leaveWriteButtonKey);
-
-      final rects = <String, Rect>{};
-      if (approvalRect != null) rects['approval'] = approvalRect;
-      if (calendarRect != null) rects['calendar'] = calendarRect;
-      if (tableRect != null) rects['table'] = tableRect;
-      if (writeRect != null) rects['write'] = writeRect;
-
-      if (!mounted) return;
-      setState(() {
-        _manualTargetRects = rects;
-      });
-    });
+  Widget _buildManualItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String description,
+    required bool isDarkTheme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDarkTheme ? const Color(0xFF262626) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color:
+              isDarkTheme ? const Color(0xFF3D3D3D) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkTheme ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.5,
+                    color: isDarkTheme
+                        ? Colors.grey[400]
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // 반응형 폰트 크기 계산 함수
@@ -256,7 +472,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                 isExpanded: _isSidebarExpanded,
                 isPinned: _isSidebarPinned,
                 selectedDate: _selectedDate,
-                onManualTap: _openManualOverlay,
+                onManualTap: _showManualDialog,
                 onDateSelected: (date) {
                   setState(() {
                     _selectedDate = date;
@@ -267,18 +483,12 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                   setState(() {
                     _isSidebarExpanded = true;
                   });
-                  if (_isManualOverlayVisible) {
-                    _scheduleManualTargetUpdate();
-                  }
                 },
                 onExit: () {
                   if (!_isSidebarPinned) {
                     setState(() {
                       _isSidebarExpanded = false;
                     });
-                    if (_isManualOverlayVisible) {
-                      _scheduleManualTargetUpdate();
-                    }
                   }
                 },
                 onPinToggle: () {
@@ -288,9 +498,6 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                       _isSidebarExpanded = true;
                     }
                   });
-                  if (_isManualOverlayVisible) {
-                    _scheduleManualTargetUpdate();
-                  }
                 },
               ),
             ),
@@ -353,12 +560,6 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                     color: Colors.black.withValues(alpha: 0.3),
                   ),
                 ),
-              ),
-
-            // 메뉴얼 오버레이
-            if (_isManualOverlayVisible)
-              Positioned.fill(
-                child: _buildManualOverlay(context),
               ),
 
             // 슬라이드 인 모달
@@ -702,7 +903,6 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
         const SizedBox(width: 16),
         // 휴가 작성 버튼
         ElevatedButton.icon(
-          key: _leaveWriteButtonKey,
           onPressed: _showLeaveRequestModal,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF3B82F6),
@@ -771,10 +971,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                             // 위: 휴가 일정 달력 (60% of remaining space)
                             Expanded(
                               flex: 6,
-                              child: KeyedSubtree(
-                                key: _calendarSectionKey,
-                                child: _buildCalendarSection(),
-                              ),
+                              child: _buildCalendarSection(),
                             ),
                             // 아래: 휴가 관리 대장과 슬라이드 패널 (40% of remaining space)
                             Expanded(
@@ -788,10 +985,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                                       children: [
                                         const SizedBox(height: 20), // 상단 여백
                                         Expanded(
-                                          child: KeyedSubtree(
-                                            key: _leaveTableKey,
-                                            child: _buildLeaveManagementTable(),
-                                          ),
+                                          child: _buildLeaveManagementTable(),
                                         ),
                                       ],
                                     ),
@@ -829,7 +1023,6 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      key: _approvalStatusKey,
       height: 102, // 22px 증가
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -4759,206 +4952,4 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     }
   }
 
-  Widget _buildManualOverlay(BuildContext context) {
-    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
-
-    final highlightColor =
-        isDarkTheme ? const Color(0xFF64B5F6) : const Color(0xFF3B82F6);
-
-    final widgets = <Widget>[
-      Positioned.fill(
-        child: GestureDetector(
-          onTap: _closeManualOverlay,
-          child: Container(
-            color: Colors.black.withValues(alpha: 0.6),
-          ),
-        ),
-      ),
-      if (_manualTargetRects['approval'] != null)
-        _buildManualHighlight(_manualTargetRects['approval']!, highlightColor),
-      if (_manualTargetRects['calendar'] != null)
-        _buildManualHighlight(_manualTargetRects['calendar']!, highlightColor),
-      if (_manualTargetRects['table'] != null)
-        _buildManualHighlight(_manualTargetRects['table']!, highlightColor),
-      if (_manualTargetRects['write'] != null)
-        _buildManualHighlight(_manualTargetRects['write']!, highlightColor),
-      ..._buildManualCallout(
-        target: _manualTargetRects['write'],
-        title: '휴가 작성',
-        description: '상단 버튼으로 휴가를 신청합니다.',
-        direction: _ArrowDirection.up,
-        isDarkTheme: isDarkTheme,
-        screenSize: size,
-      ),
-      ..._buildManualCallout(
-        target: _manualTargetRects['calendar'],
-        title: '휴가 캘린더',
-        description: '월별 휴가 현황과 공휴일을 확인합니다.',
-        direction: _ArrowDirection.down,
-        isDarkTheme: isDarkTheme,
-        screenSize: size,
-      ),
-      ..._buildManualCallout(
-        target: _manualTargetRects['table'],
-        title: '휴가 관리 대장',
-        description: '연차 사용 내역과 잔여일수를 확인합니다.',
-        direction: _ArrowDirection.down,
-        isDarkTheme: isDarkTheme,
-        screenSize: size,
-      ),
-      ..._buildManualCallout(
-        target: _manualTargetRects['approval'],
-        title: '결재 진행 현황',
-        description: '결재 상태(대기/승인/반려)를 확인합니다.',
-        direction: _ArrowDirection.down,
-        isDarkTheme: isDarkTheme,
-        screenSize: size,
-      ),
-      Positioned(
-        top: 16,
-        right: 16,
-        child: Material(
-          color: Colors.transparent,
-          child: IconButton(
-            onPressed: _closeManualOverlay,
-            icon: const Icon(Icons.close),
-            color: Colors.white,
-            tooltip: '닫기',
-          ),
-        ),
-      ),
-    ];
-
-    return Stack(children: widgets);
-  }
-
-  Widget _buildManualHighlight(Rect target, Color color) {
-    return Positioned(
-      left: max(0, target.left - 4),
-      top: max(0, target.top - 4),
-      width: target.width + 8,
-      height: target.height + 8,
-      child: IgnorePointer(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color, width: 2),
-            color: color.withValues(alpha: 0.06),
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildManualCallout({
-    required Rect? target,
-    required String title,
-    required String description,
-    required _ArrowDirection direction,
-    required bool isDarkTheme,
-    required Size screenSize,
-  }) {
-    if (target == null) return [];
-
-    const calloutWidth = 280.0;
-    const verticalOffset = 24.0;
-    const estimatedHeight = 120.0;
-    const horizontalPadding = 16.0;
-
-    final left = (target.center.dx - calloutWidth / 2).clamp(
-      horizontalPadding,
-      screenSize.width - calloutWidth - horizontalPadding,
-    );
-
-    final isAbove = direction == _ArrowDirection.down;
-    final top = isAbove
-        ? (target.top - estimatedHeight).clamp(
-            horizontalPadding,
-            screenSize.height - estimatedHeight - horizontalPadding,
-          )
-        : (target.bottom + verticalOffset).clamp(
-            horizontalPadding,
-            screenSize.height - estimatedHeight - horizontalPadding,
-          );
-
-    final arrowTop = (isAbove ? target.top - 18 : target.bottom + 4).clamp(
-      8.0,
-      screenSize.height - 24.0,
-    );
-    final arrowLeft = (target.center.dx - 12).clamp(
-      horizontalPadding,
-      screenSize.width - 24 - horizontalPadding,
-    );
-    final arrowIcon = isAbove
-        ? Icons.arrow_downward_rounded
-        : Icons.arrow_upward_rounded;
-
-    return [
-      Positioned(
-        left: left,
-        top: top,
-        width: calloutWidth,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDarkTheme ? const Color(0xFF2D2D2D) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDarkTheme
-                    ? const Color(0xFF3D3D3D)
-                    : const Color(0xFFE5E7EB),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color:
-                        isDarkTheme ? Colors.white : const Color(0xFF111827),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.4,
-                    color: isDarkTheme
-                        ? Colors.grey[300]
-                        : const Color(0xFF4B5563),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      Positioned(
-        left: arrowLeft,
-        top: arrowTop,
-        child: Icon(
-          arrowIcon,
-          size: 24,
-          color: Colors.white,
-        ),
-      ),
-    ];
-  }
-
 }
-
-enum _ArrowDirection { up, down }
