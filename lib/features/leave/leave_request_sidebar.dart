@@ -13,6 +13,7 @@ class LeaveRequestSidebar extends ConsumerStatefulWidget {
   final VoidCallback onPinToggle;
   final DateTime selectedDate;
   final Function(DateTime) onDateSelected;
+  final VoidCallback onManualTap;
 
   const LeaveRequestSidebar({
     super.key,
@@ -23,6 +24,7 @@ class LeaveRequestSidebar extends ConsumerStatefulWidget {
     required this.onPinToggle,
     required this.selectedDate,
     required this.onDateSelected,
+    required this.onManualTap,
   });
 
   @override
@@ -219,6 +221,39 @@ class _LeaveRequestSidebarState extends ConsumerState<LeaveRequestSidebar>
                       const Flexible(
                         child: Text(
                           '휴가 캘린더',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: widget.onManualTap,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDarkTheme
+                        ? const Color(0xFF4A4A4A)
+                        : Colors.white.withValues(alpha: 0.9),
+                    foregroundColor:
+                        isDarkTheme ? Colors.white : const Color(0xFF667eea),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.menu_book_rounded, size: 16),
+                      const SizedBox(width: 6),
+                      const Flexible(
+                        child: Text(
+                          '휴가관리 메뉴얼',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

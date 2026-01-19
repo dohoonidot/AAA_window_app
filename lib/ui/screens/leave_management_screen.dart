@@ -33,6 +33,11 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
   final _chatController = TextEditingController();
   final _chatScrollController = ScrollController();
 
+  final GlobalKey _approvalStatusKey = GlobalKey();
+  final GlobalKey _calendarSectionKey = GlobalKey();
+  final GlobalKey _leaveTableKey = GlobalKey();
+  final GlobalKey _leaveWriteButtonKey = GlobalKey();
+
   bool _isSidebarExpanded = false;
   bool _isSidebarPinned = false;
   bool _isTableExpanded = false;
@@ -51,7 +56,10 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
 
   // 휴가 상세내역 모달 상태
   bool _isLeaveDetailModalVisible = false;
+  bool _isManualOverlayVisible = false;
   LeaveRequestHistory? _selectedLeaveDetail;
+
+  Map<String, Rect> _manualTargetRects = {};
 
   // 연도 필터 상태
   int _selectedYear = DateTime.now().year;
@@ -148,6 +156,51 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     super.dispose();
   }
 
+  void _openManualOverlay() {
+    setState(() {
+      _isManualOverlayVisible = true;
+    });
+    _scheduleManualTargetUpdate();
+  }
+
+  void _closeManualOverlay() {
+    setState(() {
+      _isManualOverlayVisible = false;
+      _manualTargetRects = {};
+    });
+  }
+
+  void _scheduleManualTargetUpdate() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_isManualOverlayVisible) return;
+
+      Rect? rectForKey(GlobalKey key) {
+        final context = key.currentContext;
+        if (context == null) return null;
+        final renderObject = context.findRenderObject();
+        if (renderObject is! RenderBox || !renderObject.hasSize) return null;
+        final topLeft = renderObject.localToGlobal(Offset.zero);
+        return topLeft & renderObject.size;
+      }
+
+      final approvalRect = rectForKey(_approvalStatusKey);
+      final calendarRect = rectForKey(_calendarSectionKey);
+      final tableRect = rectForKey(_leaveTableKey);
+      final writeRect = rectForKey(_leaveWriteButtonKey);
+
+      final rects = <String, Rect>{};
+      if (approvalRect != null) rects['approval'] = approvalRect;
+      if (calendarRect != null) rects['calendar'] = calendarRect;
+      if (tableRect != null) rects['table'] = tableRect;
+      if (writeRect != null) rects['write'] = writeRect;
+
+      if (!mounted) return;
+      setState(() {
+        _manualTargetRects = rects;
+      });
+    });
+  }
+
   // 반응형 폰트 크기 계산 함수
   double _getResponsiveFontSize(BuildContext context, double baseSize) {
     final width = MediaQuery.of(context).size.width;
@@ -194,114 +247,130 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
               child: _buildMainContent(),
             ),
 
-          // Dynamic sidebar positioned on the left
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: LeaveRequestSidebar(
-              isExpanded: _isSidebarExpanded,
-              isPinned: _isSidebarPinned,
-              selectedDate: _selectedDate,
-              onDateSelected: (date) {
-                setState(() {
-                  _selectedDate = date;
-                  _updateSelectedDateDetails();
-                });
-              },
-              onHover: () {
-                setState(() {
-                  _isSidebarExpanded = true;
-                });
-              },
-              onExit: () {
-                if (!_isSidebarPinned) {
+            // Dynamic sidebar positioned on the left
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: LeaveRequestSidebar(
+                isExpanded: _isSidebarExpanded,
+                isPinned: _isSidebarPinned,
+                selectedDate: _selectedDate,
+                onManualTap: _openManualOverlay,
+                onDateSelected: (date) {
                   setState(() {
-                    _isSidebarExpanded = false;
-                  });
-                }
-              },
-              onPinToggle: () {
-                setState(() {
-                  _isSidebarPinned = !_isSidebarPinned;
-                  if (_isSidebarPinned) {
-                    _isSidebarExpanded = true;
-                  }
-                });
-              },
-            ),
-          ),
-
-          // 패널 외부 클릭 감지 (패널이 열려있을 때만) - 달력 영역 제외
-          if (_isDetailPanelVisible)
-            Positioned.fill(
-              child: Stack(
-                children: [
-                  // 왼쪽 영역 (개인별 휴가내역)
-                  Positioned(
-                    left: _isSidebarExpanded ? 285 : 50,
-                    top: 0,
-                    bottom: 0,
-                    width: MediaQuery.of(context).size.width * 0.5 -
-                        (_isSidebarExpanded ? 285 : 50) -
-                        24,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isDetailPanelVisible = false;
-                        });
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  ),
-                  // 오른쪽 상단 영역 (결재진행현황)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    height: 118, // 헤더 높이
-                    width: MediaQuery.of(context).size.width * 0.5 - 24,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isDetailPanelVisible = false;
-                        });
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // 휴가 상세내역 모달
-          if (_isLeaveDetailModalVisible)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isLeaveDetailModalVisible = false;
+                    _selectedDate = date;
+                    _updateSelectedDateDetails();
                   });
                 },
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.3),
-                ),
+                onHover: () {
+                  setState(() {
+                    _isSidebarExpanded = true;
+                  });
+                  if (_isManualOverlayVisible) {
+                    _scheduleManualTargetUpdate();
+                  }
+                },
+                onExit: () {
+                  if (!_isSidebarPinned) {
+                    setState(() {
+                      _isSidebarExpanded = false;
+                    });
+                    if (_isManualOverlayVisible) {
+                      _scheduleManualTargetUpdate();
+                    }
+                  }
+                },
+                onPinToggle: () {
+                  setState(() {
+                    _isSidebarPinned = !_isSidebarPinned;
+                    if (_isSidebarPinned) {
+                      _isSidebarExpanded = true;
+                    }
+                  });
+                  if (_isManualOverlayVisible) {
+                    _scheduleManualTargetUpdate();
+                  }
+                },
               ),
             ),
 
-          // 슬라이드 인 모달
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            top: 0,
-            bottom: 0,
-            right: _isLeaveDetailModalVisible ? 0 : -500,
-            width: 500,
-            child: _buildLeaveDetailModal(),
-          ),
+            // 패널 외부 클릭 감지 (패널이 열려있을 때만) - 달력 영역 제외
+            if (_isDetailPanelVisible)
+              Positioned.fill(
+                child: Stack(
+                  children: [
+                    // 왼쪽 영역 (개인별 휴가내역)
+                    Positioned(
+                      left: _isSidebarExpanded ? 285 : 50,
+                      top: 0,
+                      bottom: 0,
+                      width: MediaQuery.of(context).size.width * 0.5 -
+                          (_isSidebarExpanded ? 285 : 50) -
+                          24,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isDetailPanelVisible = false;
+                          });
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                        ),
+                      ),
+                    ),
+                    // 오른쪽 상단 영역 (결재진행현황)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      height: 118, // 헤더 높이
+                      width: MediaQuery.of(context).size.width * 0.5 - 24,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isDetailPanelVisible = false;
+                          });
+                        },
+                        child: Container(
+                          color: Colors.transparent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // 휴가 상세내역 모달
+            if (_isLeaveDetailModalVisible)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isLeaveDetailModalVisible = false;
+                    });
+                  },
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+
+            // 메뉴얼 오버레이
+            if (_isManualOverlayVisible)
+              Positioned.fill(
+                child: _buildManualOverlay(context),
+              ),
+
+            // 슬라이드 인 모달
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              top: 0,
+              bottom: 0,
+              right: _isLeaveDetailModalVisible ? 0 : -500,
+              width: 500,
+              child: _buildLeaveDetailModal(),
+            ),
           ],
         ),
       ),
@@ -633,6 +702,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
         const SizedBox(width: 16),
         // 휴가 작성 버튼
         ElevatedButton.icon(
+          key: _leaveWriteButtonKey,
           onPressed: _showLeaveRequestModal,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF3B82F6),
@@ -701,7 +771,10 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                             // 위: 휴가 일정 달력 (60% of remaining space)
                             Expanded(
                               flex: 6,
-                              child: _buildCalendarSection(),
+                              child: KeyedSubtree(
+                                key: _calendarSectionKey,
+                                child: _buildCalendarSection(),
+                              ),
                             ),
                             // 아래: 휴가 관리 대장과 슬라이드 패널 (40% of remaining space)
                             Expanded(
@@ -715,8 +788,11 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                                       children: [
                                         const SizedBox(height: 20), // 상단 여백
                                         Expanded(
-                                            child:
-                                                _buildLeaveManagementTable()),
+                                          child: KeyedSubtree(
+                                            key: _leaveTableKey,
+                                            child: _buildLeaveManagementTable(),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -753,6 +829,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
+      key: _approvalStatusKey,
       height: 102, // 22px 증가
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -4681,4 +4758,207 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
       );
     }
   }
+
+  Widget _buildManualOverlay(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
+
+    final highlightColor =
+        isDarkTheme ? const Color(0xFF64B5F6) : const Color(0xFF3B82F6);
+
+    final widgets = <Widget>[
+      Positioned.fill(
+        child: GestureDetector(
+          onTap: _closeManualOverlay,
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
+      if (_manualTargetRects['approval'] != null)
+        _buildManualHighlight(_manualTargetRects['approval']!, highlightColor),
+      if (_manualTargetRects['calendar'] != null)
+        _buildManualHighlight(_manualTargetRects['calendar']!, highlightColor),
+      if (_manualTargetRects['table'] != null)
+        _buildManualHighlight(_manualTargetRects['table']!, highlightColor),
+      if (_manualTargetRects['write'] != null)
+        _buildManualHighlight(_manualTargetRects['write']!, highlightColor),
+      ..._buildManualCallout(
+        target: _manualTargetRects['write'],
+        title: '휴가 작성',
+        description: '상단 버튼으로 휴가를 신청합니다.',
+        direction: _ArrowDirection.up,
+        isDarkTheme: isDarkTheme,
+        screenSize: size,
+      ),
+      ..._buildManualCallout(
+        target: _manualTargetRects['calendar'],
+        title: '휴가 캘린더',
+        description: '월별 휴가 현황과 공휴일을 확인합니다.',
+        direction: _ArrowDirection.down,
+        isDarkTheme: isDarkTheme,
+        screenSize: size,
+      ),
+      ..._buildManualCallout(
+        target: _manualTargetRects['table'],
+        title: '휴가 관리 대장',
+        description: '연차 사용 내역과 잔여일수를 확인합니다.',
+        direction: _ArrowDirection.down,
+        isDarkTheme: isDarkTheme,
+        screenSize: size,
+      ),
+      ..._buildManualCallout(
+        target: _manualTargetRects['approval'],
+        title: '결재 진행 현황',
+        description: '결재 상태(대기/승인/반려)를 확인합니다.',
+        direction: _ArrowDirection.down,
+        isDarkTheme: isDarkTheme,
+        screenSize: size,
+      ),
+      Positioned(
+        top: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: IconButton(
+            onPressed: _closeManualOverlay,
+            icon: const Icon(Icons.close),
+            color: Colors.white,
+            tooltip: '닫기',
+          ),
+        ),
+      ),
+    ];
+
+    return Stack(children: widgets);
+  }
+
+  Widget _buildManualHighlight(Rect target, Color color) {
+    return Positioned(
+      left: max(0, target.left - 4),
+      top: max(0, target.top - 4),
+      width: target.width + 8,
+      height: target.height + 8,
+      child: IgnorePointer(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color, width: 2),
+            color: color.withValues(alpha: 0.06),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildManualCallout({
+    required Rect? target,
+    required String title,
+    required String description,
+    required _ArrowDirection direction,
+    required bool isDarkTheme,
+    required Size screenSize,
+  }) {
+    if (target == null) return [];
+
+    const calloutWidth = 280.0;
+    const verticalOffset = 24.0;
+    const estimatedHeight = 120.0;
+    const horizontalPadding = 16.0;
+
+    final left = (target.center.dx - calloutWidth / 2).clamp(
+      horizontalPadding,
+      screenSize.width - calloutWidth - horizontalPadding,
+    );
+
+    final isAbove = direction == _ArrowDirection.down;
+    final top = isAbove
+        ? (target.top - estimatedHeight).clamp(
+            horizontalPadding,
+            screenSize.height - estimatedHeight - horizontalPadding,
+          )
+        : (target.bottom + verticalOffset).clamp(
+            horizontalPadding,
+            screenSize.height - estimatedHeight - horizontalPadding,
+          );
+
+    final arrowTop = (isAbove ? target.top - 18 : target.bottom + 4).clamp(
+      8.0,
+      screenSize.height - 24.0,
+    );
+    final arrowLeft = (target.center.dx - 12).clamp(
+      horizontalPadding,
+      screenSize.width - 24 - horizontalPadding,
+    );
+    final arrowIcon = isAbove
+        ? Icons.arrow_downward_rounded
+        : Icons.arrow_upward_rounded;
+
+    return [
+      Positioned(
+        left: left,
+        top: top,
+        width: calloutWidth,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDarkTheme ? const Color(0xFF2D2D2D) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDarkTheme
+                    ? const Color(0xFF3D3D3D)
+                    : const Color(0xFFE5E7EB),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color:
+                        isDarkTheme ? Colors.white : const Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: isDarkTheme
+                        ? Colors.grey[300]
+                        : const Color(0xFF4B5563),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        left: arrowLeft,
+        top: arrowTop,
+        child: Icon(
+          arrowIcon,
+          size: 24,
+          color: Colors.white,
+        ),
+      ),
+    ];
+  }
+
 }
+
+enum _ArrowDirection { up, down }
