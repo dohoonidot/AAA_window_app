@@ -88,3 +88,15 @@ windows/**/*.vcxproj
 # ===== Test Coverage =====
 coverage/
 *.lcov
+
+# Flutter generated plugin registrants
+linux/flutter/generated_plugin_registrant.*
+linux/flutter/generated_plugins.cmake
+
+windows/flutter/generated_plugin_registrant.*
+windows/flutter/generated_plugins.cmake
+
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Flutter lock file (app project)
+pubspec.lock
