@@ -1045,10 +1045,22 @@ class _VacationRecommendationPopupState
 
   /// finalResponseContents에서 경향 분석 요약 추출
   Widget _buildAnalysisSummaryFromFinal(String content, bool isDarkTheme) {
-    // 📅 추천 날짜 이전까지의 내용 중 분석 관련 텍스트 추출
+    // 📊 사용자 경향 분석 완료부터 🧩 팀 충돌 분석 이전까지 추출
+    final conflictIndex = content.indexOf('🧩');
     final recommendIndex = content.indexOf('📅');
-    final analysisContent =
-        recommendIndex != -1 ? content.substring(0, recommendIndex) : '';
+
+    String analysisContent = '';
+
+    if (conflictIndex != -1) {
+      // 🧩가 있으면 🧩 이전까지만 추출
+      analysisContent = content.substring(0, conflictIndex);
+    } else if (recommendIndex != -1) {
+      // 🧩가 없으면 📅 이전까지 추출
+      analysisContent = content.substring(0, recommendIndex);
+    } else {
+      // 둘 다 없으면 전체 내용
+      analysisContent = content;
+    }
 
     // 분석 요약이 있는 경우에만 표시
     if (analysisContent.trim().isEmpty) {
@@ -1074,7 +1086,7 @@ class _VacationRecommendationPopupState
 
   /// finalResponseContents에서 추천 계획 설명 추출
   Widget _buildRecommendationPlanFromFinal(String content, bool isDarkTheme) {
-    // 📅 추천 날짜 이후, 주요 연속 휴가 기간 이전의 내용 추출
+    // 📅 추천 날짜 이후, 주요 연속 휴가 기간 이후의 ⚠️ 경고까지 포함
     final recommendIndex = content.indexOf('📅');
     final periodKeyword = '**주요 연속 휴가 기간:**';
     final periodIndex = content.indexOf(periodKeyword);
@@ -1092,10 +1104,23 @@ class _VacationRecommendationPopupState
       if (tableEndMatch != null) {
         final afterTable = afterRecommend.substring(tableEndMatch.end);
 
-        // 주요 연속 휴가 기간 이전까지
+        // 주요 연속 휴가 기간 찾기
         final localPeriodIndex = afterTable.indexOf(periodKeyword);
         if (localPeriodIndex != -1) {
-          planContent = afterTable.substring(0, localPeriodIndex);
+          // 주요 연속 휴가 기간 이후의 내용도 포함 (⚠️ 경고 포함)
+          final afterPeriod = afterTable.substring(localPeriodIndex);
+          // 주요 연속 휴가 기간 섹션의 끝 찾기 (빈 줄 2개 또는 다음 섹션 시작)
+          final periodEndRegex = RegExp(r'\n\s*\n\s*\n');
+          final periodEndMatch = periodEndRegex.firstMatch(afterPeriod);
+
+          if (periodEndMatch != null) {
+            // 주요 연속 휴가 기간 + 이후 내용 (⚠️ 경고 포함)
+            planContent = afterTable.substring(0, localPeriodIndex) +
+                afterPeriod.substring(0, periodEndMatch.end);
+          } else {
+            // 주요 연속 휴가 기간 이후 전체 포함
+            planContent = afterTable;
+          }
         } else {
           planContent = afterTable;
         }
@@ -1107,6 +1132,21 @@ class _VacationRecommendationPopupState
         if (firstNewline != -1) {
           planContent = planContent.substring(firstNewline + 1);
         }
+      } else {
+        // 📅 이후 전체 내용
+        final firstNewline = afterRecommend.indexOf('\n');
+        if (firstNewline != -1) {
+          planContent = afterRecommend.substring(firstNewline + 1);
+        } else {
+          planContent = afterRecommend;
+        }
+      }
+    } else {
+      // 📅가 없는 경우 (연차가 없는 경우 등): 전체 내용 표시
+      if (periodIndex != -1) {
+        planContent = content.substring(0, periodIndex);
+      } else {
+        planContent = content;
       }
     }
 
