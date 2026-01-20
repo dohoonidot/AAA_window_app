@@ -560,6 +560,15 @@ class _VacationRecommendationPopupState
           const SizedBox(height: 24),
 
           // ═══════════════════════════════════════════════════════════════
+          // 영역 1.5: 팀 충돌 분석
+          // ═══════════════════════════════════════════════════════════════
+          if (data.isComplete && data.finalResponseContents.isNotEmpty)
+            _buildTeamConflictAnalysis(data.finalResponseContents, isDarkTheme),
+
+          if (data.isComplete && data.finalResponseContents.isNotEmpty)
+            const SizedBox(height: 24),
+
+          // ═══════════════════════════════════════════════════════════════
           // 영역 2: 추천 계획 (📅 추천 날짜가 첫 번째)
           // ═══════════════════════════════════════════════════════════════
           if (data.isComplete)
@@ -1116,6 +1125,101 @@ class _VacationRecommendationPopupState
         _buildMarkdownContent(planContent, isDarkTheme),
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  /// finalResponseContents에서 팀 충돌 분석 추출
+  Widget _buildTeamConflictAnalysis(String content, bool isDarkTheme) {
+    // 🧩 팀 충돌 분석 부분 추출
+    final conflictIndex = content.indexOf('🧩');
+    if (conflictIndex == -1) {
+      return const SizedBox.shrink();
+    }
+
+    // 🧩 이후부터 📅 이전까지 추출
+    final recommendIndex = content.indexOf('📅');
+    String conflictContent = '';
+
+    if (recommendIndex != -1 && recommendIndex > conflictIndex) {
+      conflictContent = content.substring(conflictIndex, recommendIndex);
+    } else {
+      // 📅가 없으면 🧩 이후 전체 내용
+      conflictContent = content.substring(conflictIndex);
+    }
+
+    // JSON 데이터 제거
+    conflictContent = _removeJsonDataFromMarkdown(conflictContent);
+
+    // 빈 줄 정리
+    conflictContent = conflictContent.trim();
+
+    if (conflictContent.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDarkTheme
+              ? [const Color(0xFF2A2A2A), const Color(0xFF1E1E1E)]
+              : [Colors.white, const Color(0xFFF8F9FA)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color:
+              isDarkTheme ? const Color(0xFF3D3D3D) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDarkTheme ? 0.3 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 섹션 헤더
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF6B6B), Color(0xFFEE5A6F)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.people_outline,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                '팀 충돌 분석',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDarkTheme ? Colors.white : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // 팀 충돌 분석 내용
+          GradientCard(
+            isDarkTheme: isDarkTheme,
+            child: _buildMarkdownContent(conflictContent, isDarkTheme),
+          ),
+        ],
+      ),
     );
   }
 
