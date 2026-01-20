@@ -1304,38 +1304,50 @@ class _VacationRecommendationPopupState
   String _removeJsonDataFromMarkdown(String markdown) {
     String processedMarkdown = markdown;
 
-    // 1. "연속 휴가 선호: short{...}" 같은 패턴 제거
-    processedMarkdown = processedMarkdown.replaceAll(
-        RegExp(r'연속\s*휴가\s*선호\s*:\s*[^{]*\{[^{}]*"weekday_counts"[^}]*\}[^}]*',
-            dotAll: true),
-        '');
-    processedMarkdown = processedMarkdown.replaceAll(
-        RegExp(
-            r'연속\s*휴가\s*선호\s*:\s*[^{]*\{[^{}]*"holiday_adjacent"[^}]*\}[^}]*',
-            dotAll: true),
-        '');
+    // 1. "연속 휴가 선호: short"는 유지하고, 첫 "{"부터 닫는 "}"까지 JSON만 제거
+    final linesForPreference = processedMarkdown.split('\n');
+    final preferenceFiltered = <String>[];
+    var skipJsonBlock = false;
 
-    // 2. short{...}, long{...} 같은 패턴 제거
-    processedMarkdown = processedMarkdown.replaceAll(
-        RegExp(r'\b(short|long)\s*\{[^{}]*"weekday_counts"[^}]*\}[^}]*',
-            dotAll: true),
-        '');
-    processedMarkdown = processedMarkdown.replaceAll(
-        RegExp(r'\b(short|long)\s*\{[^{}]*"holiday_adjacent"[^}]*\}[^}]*',
-            dotAll: true),
-        '');
+    for (final line in linesForPreference) {
+      if (!skipJsonBlock &&
+          line.contains('연속 휴가 선호') &&
+          line.contains('{')) {
+        preferenceFiltered.add(line.split('{').first.trimRight());
+        skipJsonBlock = true;
+        if (line.contains('}')) {
+          skipJsonBlock = false;
+        }
+        continue;
+      }
+
+      if (skipJsonBlock) {
+        if (line.contains('}')) {
+          skipJsonBlock = false;
+        }
+        continue;
+      }
+
+      preferenceFiltered.add(line);
+    }
+
+    processedMarkdown = preferenceFiltered.join('\n');
 
     // 3. 추천 날짜에서 "}" 괄호 제거 (아이콘 바로 뒤에 오는 경우)
     processedMarkdown = processedMarkdown.replaceAll(RegExp(r'📅\s*\}'), '📅');
 
-    // 4. weekday_counts, holiday_adjacent_usage_rate 등이 포함된 JSON 제거 (더 강력한 패턴)
+    // 4. weekday_counts, holiday_adjacent_usage_rate 등이 포함된 JSON 제거
+    // 단, "연속 휴가 선호: " 같은 텍스트가 포함된 경우는 제외 (줄 시작이나 이전 줄이 비어있는 경우만)
     processedMarkdown = processedMarkdown.replaceAll(
-        RegExp(r'[^{]*\{[^{}]*"weekday_counts"[^}]*\}[^}]*', dotAll: true), '');
-    processedMarkdown = processedMarkdown.replaceAll(
-        RegExp(r'[^{]*\{[^{}]*"holiday_adjacent"[^}]*\}[^}]*', dotAll: true),
+        RegExp(r'(?:^|\n)\s*\{[^{}]*"weekday_counts"[^}]*\}', multiLine: true),
         '');
     processedMarkdown = processedMarkdown.replaceAll(
-        RegExp(r'[^{]*\{[^{}]*"total_leave_days"[^}]*\}[^}]*', dotAll: true),
+        RegExp(r'(?:^|\n)\s*\{[^{}]*"holiday_adjacent"[^}]*\}',
+            multiLine: true),
+        '');
+    processedMarkdown = processedMarkdown.replaceAll(
+        RegExp(r'(?:^|\n)\s*\{[^{}]*"total_leave_days"[^}]*\}',
+            multiLine: true),
         '');
 
     // 5. JSON이 포함된 라인 전체 제거
@@ -1343,6 +1355,10 @@ class _VacationRecommendationPopupState
     final filteredLines = <String>[];
 
     for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed == '}' || trimmed == '},') {
+        continue;
+      }
       if (!line.contains('weekday_counts') &&
           !line.contains('holiday_adjacent') &&
           !line.contains('total_leave_days') &&
