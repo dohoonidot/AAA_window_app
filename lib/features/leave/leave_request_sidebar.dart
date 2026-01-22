@@ -4,6 +4,7 @@ import 'package:ASPN_AI_AGENT/features/leave/full_calendar_modal.dart';
 import 'package:ASPN_AI_AGENT/features/leave/annual_leave_notice_screen.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_grant_history_screen.dart';
 import 'package:ASPN_AI_AGENT/core/config/feature_config.dart'; // 기능 표시/숨김 설정
+import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_ui_constants.dart'; // 반응형 스케일링
 
 class LeaveRequestSidebar extends ConsumerStatefulWidget {
   final bool isExpanded;
@@ -126,13 +127,13 @@ class _LeaveRequestSidebarState extends ConsumerState<LeaveRequestSidebar>
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
-        const SizedBox(height: 20),
+        context.rsh(20),
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: context.rp(all: 8),
           child: Icon(
             Icons.calendar_today_rounded,
             color: isDarkTheme ? const Color(0xFF64B5F6) : Colors.blue[600],
-            size: 24,
+            size: context.ris(24),
           ),
         ),
       ],
@@ -145,7 +146,7 @@ class _LeaveRequestSidebarState extends ConsumerState<LeaveRequestSidebar>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: context.rp(all: 16),
           decoration: BoxDecoration(
             gradient: isDarkTheme
                 ? const LinearGradient(
@@ -166,18 +167,18 @@ class _LeaveRequestSidebarState extends ConsumerState<LeaveRequestSidebar>
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_today_rounded,
                       color: Colors.white,
-                      size: 20,
+                      size: context.ris(24),
                     ),
-                    const SizedBox(width: 8),
-                    const Expanded(
+                    context.rsw(10),
+                    Expanded(
                       child: Text(
                         '휴가 관리',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: context.rfs(18),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -188,156 +189,99 @@ class _LeaveRequestSidebarState extends ConsumerState<LeaveRequestSidebar>
                         widget.isPinned
                             ? Icons.push_pin
                             : Icons.push_pin_outlined,
-                        size: 18,
+                        size: context.ris(18),
                         color: Colors.white,
                       ),
-                      constraints:
-                          const BoxConstraints(minWidth: 32, minHeight: 32),
+                      constraints: BoxConstraints(
+                        minWidth: context.rs(32),
+                        minHeight: context.rs(32),
+                      ),
                       padding: EdgeInsets.zero,
                       tooltip: widget.isPinned ? '사이드바 고정 해제' : '사이드바 고정',
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                ElevatedButton(
+                context.rsh(16),
+                _buildSidebarButton(
+                  context,
                   onPressed: () => _showCalendarModal(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDarkTheme
-                        ? const Color(0xFF4A4A4A)
-                        : Colors.white.withValues(alpha: 0.9),
-                    foregroundColor:
-                        isDarkTheme ? Colors.white : const Color(0xFF667eea),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.calendar_month_rounded, size: 16),
-                      const SizedBox(width: 6),
-                      const Flexible(
-                        child: Text(
-                          '휴가 캘린더',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                  icon: Icons.calendar_month_rounded,
+                  label: '휴가 캘린더',
+                  isDarkTheme: isDarkTheme,
                 ),
-                const SizedBox(height: 8),
-                ElevatedButton(
+                context.rsh(10),
+                _buildSidebarButton(
+                  context,
                   onPressed: widget.onManualTap,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDarkTheme
-                        ? const Color(0xFF4A4A4A)
-                        : Colors.white.withValues(alpha: 0.9),
-                    foregroundColor:
-                        isDarkTheme ? Colors.white : const Color(0xFF667eea),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.menu_book_rounded, size: 16),
-                      const SizedBox(width: 6),
-                      const Flexible(
-                        child: Text(
-                          '휴가관리 메뉴얼',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                  icon: Icons.menu_book_rounded,
+                  label: '휴가관리 메뉴얼',
+                  isDarkTheme: isDarkTheme,
                 ),
                 // 연차휴가 사용촉진 통지서 버튼 (조건부 표시)
                 if (FeatureConfig.showAnnualLeaveNotice) ...[
-                  const SizedBox(height: 8),
-                  ElevatedButton(
+                  context.rsh(10),
+                  _buildSidebarButton(
+                    context,
                     onPressed: () => _showAnnualLeaveNotice(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isDarkTheme
-                          ? const Color(0xFF4A4A4A)
-                          : Colors.white.withValues(alpha: 0.9),
-                      foregroundColor:
-                          isDarkTheme ? Colors.white : const Color(0xFF667eea),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.description_rounded, size: 16),
-                        const SizedBox(width: 6),
-                        const Flexible(
-                          child: Text(
-                            '연차휴가 사용촉진 통지서',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                    icon: Icons.description_rounded,
+                    label: '연차휴가 사용촉진 통지서',
+                    isDarkTheme: isDarkTheme,
                   ),
                 ],
-                const SizedBox(height: 8),
-                ElevatedButton(
+                context.rsh(10),
+                _buildSidebarButton(
+                  context,
                   onPressed: () => _showGrantHistory(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDarkTheme
-                        ? const Color(0xFF4A4A4A)
-                        : Colors.white.withValues(alpha: 0.9),
-                    foregroundColor:
-                        isDarkTheme ? Colors.white : const Color(0xFF667eea),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.history_rounded, size: 16),
-                      const SizedBox(width: 6),
-                      const Flexible(
-                        child: Text(
-                          '휴가 부여 내역',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                  icon: Icons.history_rounded,
+                  label: '휴가 부여 내역',
+                  isDarkTheme: isDarkTheme,
                 ),
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  /// 사이드바 버튼 빌더 (반응형)
+  Widget _buildSidebarButton(
+    BuildContext context, {
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required bool isDarkTheme,
+  }) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isDarkTheme
+            ? const Color(0xFF4A4A4A)
+            : Colors.white.withValues(alpha: 0.9),
+        foregroundColor: isDarkTheme ? Colors.white : const Color(0xFF667eea),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: context.rbr(12),
+        ),
+        padding: context.rsp(vertical: 14, horizontal: 12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: context.ris(20)),
+          context.rsw(8),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: context.rfs(14),
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

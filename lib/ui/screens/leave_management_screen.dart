@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:ASPN_AI_AGENT/features/leave/leave_request_sidebar.dart';
+import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_ui_constants.dart'; // 반응형 스케일링
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
 import 'package:ASPN_AI_AGENT/features/leave/full_calendar_modal.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_request_manual_modal.dart';
@@ -416,12 +417,28 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     );
   }
 
-  // 반응형 폰트 크기 계산 함수
+  // 반응형 폰트 크기 계산 함수 - ResponsiveScale 유틸리티 사용
   double _getResponsiveFontSize(BuildContext context, double baseSize) {
-    final width = MediaQuery.of(context).size.width;
-    // 1280px 기준으로 계산, 최소 0.8배, 최대 1.2배
-    final scaleFactor = (width / 1280).clamp(0.8, 1.2);
-    return baseSize * scaleFactor;
+    return context.rfs(baseSize);
+  }
+
+  // 반응형 아이콘 크기 계산 함수
+  double _getResponsiveIconSize(BuildContext context, double baseSize) {
+    return context.ris(baseSize);
+  }
+
+  // 반응형 패딩 계산 함수
+  EdgeInsets _getResponsivePadding(BuildContext context,
+      {double? all, double? horizontal, double? vertical}) {
+    if (all != null) {
+      return context.rp(all: all);
+    }
+    return context.rsp(horizontal: horizontal ?? 0, vertical: vertical ?? 0);
+  }
+
+  // 반응형 스케일 값 계산 함수
+  double _getResponsiveSize(BuildContext context, double baseSize) {
+    return context.rs(baseSize);
   }
 
   @override
@@ -956,7 +973,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
 
   Widget _buildMainContent() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: _getResponsivePadding(context, all: 16),
       child: Column(
         children: [
           // 상단 영역: 휴가 현황과 결재진행 현황을 나란히 배치
@@ -968,7 +985,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                 flex: 1,
                 child: _buildLeaveBalanceHeader(),
               ),
-              const SizedBox(width: 16),
+              context.rsw(16),
               // 오른쪽: 결재진행 현황 헤더와 통계 (더 얇게)
               Expanded(
                 flex: 1,
@@ -976,7 +993,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          context.rsh(16),
 
           // 하단: 개인별 휴가 내역과 휴가 관리 대장을 나란히 배치
           Expanded(
@@ -1051,11 +1068,11 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      height: 102, // 22px 증가
-      padding: const EdgeInsets.all(8),
+      height: _getResponsiveSize(context, 102),
+      padding: _getResponsivePadding(context, all: 8),
       decoration: BoxDecoration(
         color: isDarkTheme ? const Color(0xFF2D2D2D) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: context.rbr(16),
         border: Border.all(
             color:
                 isDarkTheme ? const Color(0xFF505050) : const Color(0xFFE8F4FD),
@@ -1071,22 +1088,22 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: _getResponsivePadding(context, all: 8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF1E88E5), Color(0xFF1976D2)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: context.rbr(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.assignment_turned_in,
               color: Colors.white,
-              size: 16,
+              size: _getResponsiveIconSize(context, 16),
             ),
           ),
-          const SizedBox(width: 12),
+          context.rsw(12),
           Text(
             '결재 진행 현황',
             style: TextStyle(
@@ -1096,7 +1113,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
               letterSpacing: -0.2,
             ),
           ),
-          const SizedBox(width: 16),
+          context.rsw(16),
           Expanded(
             child: Row(
               children: [
@@ -1108,7 +1125,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                     Icons.schedule,
                   ),
                 ),
-                const SizedBox(width: 8),
+                context.rsw(8),
                 Expanded(
                   child: _buildCompactStatusCard(
                     '승인됨',
@@ -1117,7 +1134,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                     Icons.check_circle,
                   ),
                 ),
-                const SizedBox(width: 8),
+                context.rsw(8),
                 Expanded(
                   child: _buildCompactStatusCard(
                     '반려됨',
@@ -1129,12 +1146,12 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          context.rsw(16),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: _getResponsivePadding(context, horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFF1E88E5).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: context.rbr(8),
             ),
             child: Text(
               '총 ${totalCount}건',
@@ -1153,18 +1170,15 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
 
   Widget _buildCompactStatusCard(
       String title, int count, Color color, IconData icon) {
-    final width = MediaQuery.of(context).size.width;
-    final scaleFactor = (width / 1280).clamp(0.8, 1.2);
-
     return Container(
-      margin: const EdgeInsets.only(right: 6),
+      margin: EdgeInsets.only(right: _getResponsiveSize(context, 6)),
       padding: EdgeInsets.symmetric(
-        horizontal: 4,
-        vertical: 8 * scaleFactor.clamp(0.9, 1.0), // 패딩 축소
+        horizontal: _getResponsiveSize(context, 4),
+        vertical: _getResponsiveSize(context, 8),
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: context.rbr(8),
         border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
       ),
       child: Column(
@@ -1174,9 +1188,9 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
           Icon(
             icon,
             color: color,
-            size: 14 * scaleFactor.clamp(0.9, 1.0),
+            size: _getResponsiveIconSize(context, 14),
           ),
-          SizedBox(height: 5 * scaleFactor.clamp(0.8, 1.0)),
+          SizedBox(height: _getResponsiveSize(context, 5)),
           Flexible(
             child: Text(
               count.toString(),
@@ -1190,7 +1204,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
               maxLines: 1,
             ),
           ),
-          SizedBox(height: 4 * scaleFactor.clamp(0.8, 1.0)),
+          SizedBox(height: _getResponsiveSize(context, 4)),
           Flexible(
             child: Text(
               title,
@@ -1248,7 +1262,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     return Container(
       decoration: BoxDecoration(
         color: isDarkTheme ? const Color(0xFF2D2D2D) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: context.rbr(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDarkTheme ? 0.3 : 0.04),
@@ -1260,7 +1274,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: _getResponsivePadding(context, all: 16),
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
@@ -1284,7 +1298,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                 // AI 휴가 추천 버튼
                 ElevatedButton.icon(
                   onPressed: () => _showVacationRecommendationModal(),
-                  icon: const Icon(Icons.auto_awesome, size: 16),
+                  icon: Icon(Icons.auto_awesome, size: _getResponsiveIconSize(context, 16)),
                   label: Text(
                     '내 휴가계획 AI 추천',
                     style: TextStyle(
@@ -1295,24 +1309,22 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4A90E2),
                     foregroundColor: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: _getResponsivePadding(context, horizontal: 12, vertical: 8),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: context.rbr(6),
                     ),
                     elevation: 2,
                   ),
                 ),
-                const SizedBox(width: 12),
+                context.rsw(12),
                 // 연도 선택 드롭다운
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: _getResponsivePadding(context, horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isDarkTheme
                         ? const Color(0xFF3A3A3A)
                         : const Color(0xFFF8F9FA),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: context.rbr(6),
                     border: Border.all(
                         color: isDarkTheme
                             ? const Color(0xFF505050)
@@ -1324,7 +1336,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                       isDense: true,
                       icon: Icon(
                         Icons.keyboard_arrow_down,
-                        size: 14,
+                        size: _getResponsiveIconSize(context, 14),
                         color: isDarkTheme
                             ? Colors.grey[400]
                             : const Color(0xFF6C757D),
@@ -1366,7 +1378,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                     children: [
                       Expanded(
                         child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          padding: _getResponsivePadding(context, all: 16),
                           itemCount:
                               _getPagedItems(filteredYearlyDetails).length,
                           itemBuilder: (context, index) {
@@ -2838,11 +2850,11 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      height: 102, // 22px 증가
-      padding: const EdgeInsets.all(8),
+      height: _getResponsiveSize(context, 102),
+      padding: _getResponsivePadding(context, all: 8),
       decoration: BoxDecoration(
         color: isDarkTheme ? const Color(0xFF2D2D2D) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: context.rbr(16),
         border: Border.all(
             color:
                 isDarkTheme ? const Color(0xFF505050) : const Color(0xFFE8F4FD),
@@ -2859,28 +2871,28 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
         children: [
           // 아이콘과 제목
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: _getResponsivePadding(context, all: 8),
             decoration: BoxDecoration(
               color: const Color(0xFF1E88E5),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: context.rbr(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.account_balance_wallet_outlined,
               color: Colors.white,
-              size: 16,
+              size: _getResponsiveIconSize(context, 16),
             ),
           ),
-          const SizedBox(width: 12),
+          context.rsw(12),
           Text(
             '내 휴가 현황',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: _getResponsiveFontSize(context, 14),
               fontWeight: FontWeight.w700,
               color: isDarkTheme ? Colors.white : const Color(0xFF1E2B3C),
               letterSpacing: -0.2,
             ),
           ),
-          const SizedBox(width: 16),
+          context.rsw(16),
 
           // 휴가 잔여량 카드들
           Expanded(
@@ -2890,14 +2902,13 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                 ...leaveBalances.take(3).map((balance) {
                   return Expanded(
                     child: Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 6),
+                      margin: EdgeInsets.only(right: _getResponsiveSize(context, 6)),
+                      padding: _getResponsivePadding(context, horizontal: 6, vertical: 6),
                       decoration: BoxDecoration(
                         color: isDarkTheme
                             ? const Color(0xFF3A3A3A)
                             : const Color(0xFFF3F8FF),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: context.rbr(8),
                         border: Border.all(
                             color: isDarkTheme
                                 ? const Color(0xFF505050)
@@ -2910,7 +2921,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                           Text(
                             balance.leaveType,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: _getResponsiveFontSize(context, 11),
                               fontWeight: FontWeight.w500,
                               color: isDarkTheme
                                   ? Colors.grey[400]
@@ -2922,7 +2933,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 5),
+                          SizedBox(height: _getResponsiveSize(context, 5)),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
@@ -2931,8 +2942,8 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                             children: [
                               Text(
                                 '${balance.remainDays}',
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  fontSize: _getResponsiveFontSize(context, 18),
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF1E88E5),
                                   letterSpacing: -0.2,
@@ -2941,7 +2952,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                               Text(
                                 '/${balance.totalDays}',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: _getResponsiveFontSize(context, 12),
                                   fontWeight: FontWeight.w500,
                                   color: isDarkTheme
                                       ? Colors.grey[400]
@@ -2952,7 +2963,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: _getResponsiveSize(context, 4)),
                           LinearProgressIndicator(
                             value: balance.totalDays > 0
                                 ? balance.remainDays / balance.totalDays
@@ -2960,8 +2971,8 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                             backgroundColor: const Color(0xFFE3F2FD),
                             valueColor: const AlwaysStoppedAnimation<Color>(
                                 Color(0xFF1E88E5)),
-                            minHeight: 3,
-                            borderRadius: BorderRadius.circular(1.5),
+                            minHeight: _getResponsiveSize(context, 3),
+                            borderRadius: context.rbr(1.5),
                           ),
                         ],
                       ),
