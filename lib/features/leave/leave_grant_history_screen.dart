@@ -114,6 +114,9 @@ class _LeaveGrantHistoryScreenState
           item.status.contains('요청') ||
           item.status.contains('신청');
     }).length;
+    final rejectedCount = _items.where((item) {
+      return _isRejectedStatus(item.status);
+    }).length;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -170,6 +173,7 @@ class _LeaveGrantHistoryScreenState
             children: [
               _buildStatChip('전체', totalCount.toString()),
               _buildStatChip('대기', pendingCount.toString()),
+              _buildStatChip('반려', rejectedCount.toString()),
               _buildStatChip('관리자 임의부여', managerCount.toString()),
               _buildStatChip('관리자 승인', approvedUserCount.toString()),
             ],
@@ -584,6 +588,13 @@ class _LeaveGrantHistoryScreenState
     if (status.contains('승인')) return true;
     if (lower.contains('complete') || lower.contains('done')) return true;
     if (status.contains('완료')) return true;
+    return false;
+  }
+
+  bool _isRejectedStatus(String status) {
+    final lower = status.toLowerCase();
+    if (lower.contains('rejected')) return true;
+    if (status.contains('반려')) return true;
     return false;
   }
 

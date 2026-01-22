@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
+import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_ui_constants.dart'; // 반응형 스케일링
 import 'package:ASPN_AI_AGENT/provider/leave_management_provider.dart';
 import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
@@ -1032,13 +1033,13 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
             const Color(0xFF1E88E5);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: context.rs(8)),
+      padding: context.rp(all: 12),
       decoration: BoxDecoration(
         color: isDarkTheme
             ? statusColor.withValues(alpha: 0.1)
             : statusColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: context.rbr(8),
         border: Border.all(
             color: statusColor.withValues(alpha: isDarkTheme ? 0.3 : 0.2)),
       ),
@@ -1048,29 +1049,28 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: context.rsp(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: statusColor,
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: context.rbr(15),
                 ),
                 child: Text(
                   statusString == 'HOLIDAY'
                       ? (detail['employeeName'] as String?) ?? '공휴일'
                       : _convertStatusToEnum(statusString).label,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TextStyle(
+                    fontSize: context.rfs(11),
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              context.rsw(8),
               Expanded(
                 child: Text(
                   (detail['vacationType'] as String?) ?? '',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: context.rfs(13),
                     fontWeight: FontWeight.w600,
                     color: isDarkTheme ? Colors.white : const Color(0xFF1A1D1F),
                   ),
@@ -1081,11 +1081,11 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
           if (statusString != 'HOLIDAY' &&
               (detail['reason'] as String?) != null &&
               (detail['reason'] as String).isNotEmpty) ...[
-            const SizedBox(height: 6),
+            context.rsh(6),
             Text(
               '사유: ${detail['reason'] as String}',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: context.rfs(12),
                 color: isDarkTheme ? Colors.grey[400] : const Color(0xFF6C757D),
               ),
               maxLines: 2,
@@ -1095,11 +1095,11 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
           if (statusString != 'HOLIDAY' &&
               detail['startDate'] != null &&
               detail['endDate'] != null) ...[
-            const SizedBox(height: 4),
+            context.rsh(4),
             Text(
               '기간: ${DateFormat('yyyy.MM.dd').format(detail['startDate'] as DateTime)} ~ ${DateFormat('yyyy.MM.dd').format(detail['endDate'] as DateTime)}',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: context.rfs(12),
                 color: isDarkTheme ? Colors.grey[400] : const Color(0xFF6C757D),
               ),
             ),
@@ -1932,18 +1932,18 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
                   return Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: context.rp(all: 6),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: context.rbr(8),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.event_note_rounded,
                           color: Color(0xFF1E88E5),
-                          size: 16,
+                          size: context.ris(16),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      context.rsw(8),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1952,7 +1952,7 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
                             Text(
                               '휴가 상세 내역',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: context.rfs(14),
                                 fontWeight: FontWeight.w600,
                                 color: isDarkTheme
                                     ? Colors.white
@@ -1964,7 +1964,7 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
                             Text(
                               '${_selectedDate.year}년 ${_selectedDate.month}월 ${_selectedDate.day}일',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: context.rfs(12),
                                 color: isDarkTheme
                                     ? Colors.grey[400]
                                     : const Color(0xFF64748B),
@@ -1986,12 +1986,12 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
                           color: isDarkTheme
                               ? Colors.grey[400]
                               : const Color(0xFF64748B),
-                          size: 20,
+                          size: context.ris(20),
                         ),
                         tooltip: '패널 닫기',
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
+                        constraints: BoxConstraints(
+                          minWidth: context.rs(32),
+                          minHeight: context.rs(32),
                         ),
                         padding: EdgeInsets.zero,
                       ),
@@ -2037,29 +2037,29 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: context.rp(all: 12),
                   decoration: BoxDecoration(
                     color: isDarkTheme
                         ? const Color(0xFF3A3A3A)
                         : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: context.rbr(8),
                   ),
                   child: Icon(
                     Icons.calendar_today_outlined,
-                    size: constraints.maxHeight < 200 ? 32 : 48,
+                    size: context.ris(constraints.maxHeight < 200 ? 32 : 48),
                     color: isDarkTheme
                         ? Colors.grey[500]
                         : const Color(0xFF94A3B8),
                   ),
                 ),
-                const SizedBox(height: 12),
+                context.rsh(12),
                 Text(
                   constraints.maxWidth < 200
                       ? '휴가 없음'
                       : '선택된 날짜에\n휴가 일정이 없습니다.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: constraints.maxWidth < 200 ? 12 : 14,
+                    fontSize: context.rfs(constraints.maxWidth < 200 ? 12 : 14),
                     color: isDarkTheme
                         ? Colors.grey[400]
                         : const Color(0xFF64748B),
@@ -2091,12 +2091,12 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     // 부서휴가현황 모드에서는 승인됨 상태 배지를 제거하고 더 깔끔하게 표시
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      margin: const EdgeInsets.only(bottom: 8),
+      padding: context.rsp(horizontal: 16, vertical: 12),
+      margin: EdgeInsets.only(bottom: context.rs(8)),
       decoration: BoxDecoration(
         color:
             const Color(0xFF1E88E5).withValues(alpha: isDarkTheme ? 0.1 : 0.05),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: context.rbr(12),
         border: Border.all(
             color: const Color(0xFF1E88E5)
                 .withValues(alpha: isDarkTheme ? 0.3 : 0.2),
@@ -2112,19 +2112,19 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
               Text(
                 (detail['employeeName'] as String?) ?? '알 수 없음',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: context.rfs(14),
                   fontWeight: FontWeight.w700,
                   color: isDarkTheme ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
-              const SizedBox(width: 8),
+              context.rsw(8),
               // 부서 정보 (이름 오른쪽)
               if ((detail['department'] as String?) != null &&
                   (detail['department'] as String).isNotEmpty)
                 Text(
                   '(${detail['department'] as String})',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: context.rfs(12),
                     color: isDarkTheme
                         ? Colors.grey[400]
                         : const Color(0xFF64748B),
@@ -2134,15 +2134,15 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
               const Spacer(),
               // 휴가 유형
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: context.rsp(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E88E5).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: context.rbr(6),
                 ),
                 child: Text(
                   (detail['vacationType'] as String?) ?? '',
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TextStyle(
+                    fontSize: context.rfs(11),
                     color: Color(0xFF1E88E5),
                     fontWeight: FontWeight.w600,
                   ),
@@ -2150,25 +2150,28 @@ class _FullCalendarModalState extends ConsumerState<FullCalendarModal> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          context.rsh(8),
           // 두 번째 줄: 기간 정보 (더 크고 굵게)
           if (detail['startDate'] != null && detail['endDate'] != null)
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.calendar_today,
-                  size: 16,
+                  size: context.ris(16),
                   color: Color(0xFF64748B),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  '${_formatDateFull(detail['startDate'] as DateTime)} ~ ${_formatDateFull(detail['endDate'] as DateTime)}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isDarkTheme
-                        ? Colors.grey[300]
-                        : const Color(0xFF374151),
+                context.rsw(6),
+                Flexible(
+                  child: Text(
+                    '${_formatDateFull(detail['startDate'] as DateTime)} ~ ${_formatDateFull(detail['endDate'] as DateTime)}',
+                    style: TextStyle(
+                      fontSize: context.rfs(13),
+                      fontWeight: FontWeight.w600,
+                      color: isDarkTheme
+                          ? Colors.grey[300]
+                          : const Color(0xFF374151),
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

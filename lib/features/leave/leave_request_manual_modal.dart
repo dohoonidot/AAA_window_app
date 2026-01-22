@@ -1,8 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
+import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_ui_constants.dart'; // 반응형 스케일링
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:ASPN_AI_AGENT/shared/services/api_service.dart';
 import 'package:http/http.dart' as http;
@@ -348,22 +350,27 @@ class _LeaveRequestManualModalState
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    // 화면 크기에 비례하여 모달 크기 계산 (최소/최대 제한)
+    final modalWidth = math.max(750.0, math.min(screenSize.width * 0.55, 950.0));
+    final modalHeight = math.max(700.0, math.min(screenSize.height * 0.85, 900.0));
+
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: context.rbr(16),
       ),
       child: FadeTransition(
         opacity: Tween<double>(begin: 0.0, end: 1.0).animate(_slideController),
         child: ScaleTransition(
           scale: Tween<double>(begin: 0.95, end: 1.0).animate(_slideController),
           child: Container(
-            width: 750,
-            height: 700,
+            width: modalWidth,
+            height: modalHeight,
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
                   ? const Color(0xFF1A1D1F)
                   : Colors.white,
-              borderRadius: const BorderRadius.all(Radius.circular(16)),
+              borderRadius: BorderRadius.all(Radius.circular(context.rs(16))),
             ),
             child: Column(
               children: [
@@ -385,7 +392,7 @@ class _LeaveRequestManualModalState
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: context.rp(all: 16),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -398,23 +405,23 @@ class _LeaveRequestManualModalState
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: context.rp(all: 8),
             decoration: BoxDecoration(
               color: const Color(0xFF4A6CF7).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: context.rbr(8),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.beach_access_outlined,
               color: Color(0xFF4A6CF7),
-              size: 20,
+              size: context.ris(20),
             ),
           ),
-          const SizedBox(width: 12),
+          context.rsw(12),
           Expanded(
             child: Text(
               '휴가 작성',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: context.rfs(18),
                 fontWeight: FontWeight.w700,
                 color: isDarkTheme ? Colors.white : const Color(0xFF1A1D1F),
               ),
@@ -1073,7 +1080,7 @@ class _LeaveRequestManualModalState
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: context.rp(all: 16),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
@@ -1093,38 +1100,38 @@ class _LeaveRequestManualModalState
                 backgroundColor:
                     _isSubmitting ? Colors.grey : const Color(0xFF4A6CF7),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: context.rsp(vertical: 10),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: context.rbr(12),
                 ),
               ),
               child: _isSubmitting
-                  ? const Row(
+                  ? Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
+                          width: context.rs(18),
+                          height: context.rs(18),
+                          child: const CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor:
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
-                        SizedBox(width: 8),
+                        context.rsw(8),
                         Text(
                           '상신 중...',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: context.rfs(16),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     )
-                  : const Text(
+                  : Text(
                       '휴가 상신',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: context.rfs(16),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1144,7 +1151,7 @@ class _LeaveRequestManualModalState
       labelText: isRequired ? '$label *' : label,
       labelStyle: TextStyle(
         color: isDarkTheme ? const Color(0xFFA0AEC0) : const Color(0xFF8B95A1),
-        fontSize: 12,
+        fontSize: context.rfs(12),
         fontWeight: FontWeight.w500,
       ),
       errorText: errorText,
