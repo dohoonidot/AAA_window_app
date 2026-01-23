@@ -17,6 +17,7 @@ import 'package:ASPN_AI_AGENT/ui/screens/leave_management_screen.dart'; // 휴�
 import 'package:ASPN_AI_AGENT/ui/screens/admin_leave_approval_screen.dart'; // 관리자 휴가관리 페이지 추가
 import 'package:ASPN_AI_AGENT/ui/screens/electronic_approval_management_screen.dart'; // 전자결재관리 추가
 import 'package:ASPN_AI_AGENT/ui/screens/vacation_management_webview_screen.dart'; // 휴가 총괄 관리 웹뷰
+import 'package:ASPN_AI_AGENT/ui/screens/agenda_ai_webview_screen.dart'; // AgendaAI 웹뷰
 import 'package:ASPN_AI_AGENT/main.dart'; // navigatorKey import
 import 'package:ASPN_AI_AGENT/features/leave/leave_modal_provider.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_draft_modal.dart';
@@ -887,6 +888,33 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                 ],
               ),
               actions: [
+                // AgendaAI 버튼 추가
+                Tooltip(
+                  message: 'AgendaAI 회의록 서비스',
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AgendaAIWebViewScreen(),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    ),
+                    child: Text(
+                      'AgendaAI',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: themeState.colorScheme.name == 'Dark'
+                            ? Colors.white
+                            : themeState.colorScheme.appBarTextColor,
+                      ),
+                    ),
+                  ),
+                ),
                 // 버전 정보 버튼 추가
                 IconButton(
                   icon: Icon(
