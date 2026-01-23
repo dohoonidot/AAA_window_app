@@ -99,6 +99,7 @@ mixin FileAttachmentMixin<T extends StatefulWidget> on State<T> {
     for (final file in files) {
       final bytes = await file.readAsBytes();
       if (bytes.length > 20 * 1024 * 1024) {
+        if (!context.mounted) return;
         _showErrorMessage(context, '파일 크기가 20MB를 초과할 수 없습니다.');
         return;
       }
@@ -122,8 +123,10 @@ mixin FileAttachmentMixin<T extends StatefulWidget> on State<T> {
       }
 
       attachmentNotifier.addFiles(platformFiles);
+      if (!context.mounted) return;
       _showSuccessMessage(context, '파일이 첨부되었습니다.');
     } catch (e) {
+      if (!context.mounted) return;
       _showErrorMessage(context, '파일 첨부 중 오류가 발생했습니다: $e');
     }
   }

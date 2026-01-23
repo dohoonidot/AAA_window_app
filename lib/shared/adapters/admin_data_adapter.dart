@@ -1,4 +1,4 @@
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
 
 /// 관리자 API 데이터를 기존 UI 모델로 변환하는 어댑터 클래스

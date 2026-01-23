@@ -126,9 +126,10 @@ class _EventPopupState extends State<EventPopup> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (mounted) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop && mounted) {
           _confettiController.stop();
           _confettiController2.stop();
           _confettiController3.stop();
@@ -136,7 +137,6 @@ class _EventPopupState extends State<EventPopup> with TickerProviderStateMixin {
           _confettiController5.stop();
           _confettiController6.stop();
         }
-        return true;
       },
       child: Material(
         type: MaterialType.transparency,

@@ -593,9 +593,11 @@ class SettingsPage extends ConsumerWidget {
                                   .checkForUpdatesManually();
 
                               // 로딩 다이얼로그 닫기
+                              if (!context.mounted) return;
                               Navigator.of(context).pop();
 
                               // 결과에 따라 메시지 표시
+                              if (!context.mounted) return;
                               if (result == UpdateCheckResult.noUpdate) {
                                 // UpdateCheckResult 추가
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -609,6 +611,7 @@ class SettingsPage extends ConsumerWidget {
                               } else if (result ==
                                   UpdateCheckResult.networkError) {
                                 // UpdateCheckResult 추가
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
@@ -620,6 +623,7 @@ class SettingsPage extends ConsumerWidget {
                               } else if (result !=
                                   UpdateCheckResult.available) {
                                 // UpdateCheckResult 추가
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(

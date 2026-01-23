@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
 import 'package:ASPN_AI_AGENT/features/leave/widgets/vacation_ui_constants.dart'; // 반응형 스케일링
-import 'package:ASPN_AI_AGENT/provider/leave_management_provider.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/features/leave/providers/leave_management_provider.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:ASPN_AI_AGENT/shared/services/api_service.dart';

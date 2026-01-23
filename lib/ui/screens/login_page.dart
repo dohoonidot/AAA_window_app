@@ -370,6 +370,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             print('🚀 [FastLogin] API 완료 - 즉시 화면 전환');
 
             // 🎯 핵심: API 완료 즉시 화면 전환!
+            if (!context.mounted) return;
             await _navigateToMainScreen(context);
 
             // 🔥 백그라운드 초기화는 메인 화면에서 수행
@@ -379,14 +380,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 .setStep(LoginStep.connectingAmqp);
           } else {
             // 로그인 실패 처리
-            if (mounted) {
+            if (context.mounted) {
               CommonUIUtils.showErrorSnackBar(
                   context, apiResult['error'] ?? '로그인에 실패했습니다.');
             }
           }
         } catch (e) {
           print('❌ [FastLogin] 로그인 중 오류: $e');
-          if (mounted) {
+          if (context.mounted) {
             CommonUIUtils.showErrorSnackBar(context, '로그인 오류: $e');
           }
         } finally {
@@ -485,7 +486,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     });
 
     // 화면 전환
-    if (mounted) {
+    if (context.mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ChatHomePage()),
@@ -521,7 +522,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
       print('🚀 [FastAutoLogin] API 완료 - 즉시 화면 전환');
 
       // 3단계: API 완료 즉시 화면 전환!
-      await _navigateToMainScreen(context);
+      if (!context.mounted) return;
+      final currentContext = context;
+      await _navigateToMainScreen(currentContext);
+      // await 이후 context 사용 전 재확인
+      if (!currentContext.mounted) return;
 
       // 4단계: 백그라운드 초기화 신호
       ref

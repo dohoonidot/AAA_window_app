@@ -137,7 +137,7 @@ class _EditableHtmlTableRendererState
                   _isEditing = value;
                 });
               },
-              activeColor: const Color(0xFF4A6CF7),
+              activeThumbColor: const Color(0xFF4A6CF7),
             ),
             const SizedBox(width: 8),
             Text(

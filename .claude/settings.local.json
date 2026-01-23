@@ -53,7 +53,9 @@
       "Bash(cmd.exe /c \"flutter analyze lib/features/approval/common_electronic_approval_modal.dart --no-fatal-infos 2>&1\")",
       "Bash(cmd.exe /c \"flutter analyze lib/ui/screens/voting_screen.dart --no-fatal-infos 2>&1 | findstr /C:\"error\" /C:\"issues found\"\")",
       "Bash(cmd.exe /c \"flutter analyze lib/ui/screens/voting_screen.dart 2>&1 | find /C \"error\"\")",
-      "Bash(cmd.exe:*)"
+      "Bash(cmd.exe:*)",
+      "Bash(sort:*)",
+      "Bash(/mnt/c/Users/user/fvm/default/bin/flutter.bat analyze:*)"
     ],
     "deny": []
   }

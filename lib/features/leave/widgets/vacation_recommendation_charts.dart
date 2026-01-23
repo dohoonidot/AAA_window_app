@@ -101,8 +101,8 @@ class MonthlyDistributionChart extends StatelessWidget {
             getDrawingHorizontalLine: (value) {
               return FlLine(
                 color: isDarkTheme
-                    ? Colors.grey[700]!.withOpacity(0.3)
-                    : Colors.grey[300]!.withOpacity(0.5),
+                    ? Colors.grey[700]!.withValues(alpha: 0.3)
+                    : Colors.grey[300]!.withValues(alpha: 0.5),
                 strokeWidth: 1,
               );
             },
@@ -140,8 +140,8 @@ class MonthlyDistributionChart extends StatelessWidget {
               show: true,
               toY: _getMaxY(),
               color: isDarkTheme
-                  ? Colors.grey[800]!.withOpacity(0.3)
-                  : Colors.grey[200]!.withOpacity(0.5),
+                  ? Colors.grey[800]!.withValues(alpha: 0.3)
+                  : Colors.grey[200]!.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -265,7 +265,7 @@ class VacationStatisticsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -402,8 +402,8 @@ class WeekdayDistributionChart extends StatelessWidget {
             getDrawingHorizontalLine: (value) {
               return FlLine(
                 color: isDarkTheme
-                    ? Colors.grey[700]!.withOpacity(0.3)
-                    : Colors.grey[300]!.withOpacity(0.5),
+                    ? Colors.grey[700]!.withValues(alpha: 0.3)
+                    : Colors.grey[300]!.withValues(alpha: 0.5),
                 strokeWidth: 1,
               );
             },
@@ -447,8 +447,8 @@ class WeekdayDistributionChart extends StatelessWidget {
               show: true,
               toY: _getMaxY(),
               color: isDarkTheme
-                  ? Colors.grey[800]!.withOpacity(0.3)
-                  : Colors.grey[200]!.withOpacity(0.5),
+                  ? Colors.grey[800]!.withValues(alpha: 0.3)
+                  : Colors.grey[200]!.withValues(alpha: 0.5),
             ),
           ),
         ],

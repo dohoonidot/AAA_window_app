@@ -19,7 +19,7 @@ import 'editable_html_table_renderer.dart';
 import '../../shared/providers/chat_notifier.dart';
 import '../../shared/services/leave_api_service.dart';
 import '../leave/leave_models.dart';
-import '../../models/leave_management_models.dart';
+import '../../shared/models/leave_management_models.dart';
 import '../leave/approver_selection_modal.dart';
 
 /// 공통 전자결재 모달 (공통 필수영역 + 승인자/참조자)
@@ -1404,7 +1404,8 @@ class _CommonElectronicApprovalModalState
                             _serverHtmlContent = null;
                           });
 
-                          CommonUIUtils.showInfoSnackBar(context, '테스트 HTML 데이터가 삭제되었습니다');
+                          CommonUIUtils.showInfoSnackBar(
+                              context, '테스트 HTML 데이터가 삭제되었습니다');
                         },
                         icon: const Icon(Icons.clear, size: 16),
                         label: const Text('테스트 데이터 지우기',
@@ -2000,8 +2001,8 @@ class _CommonElectronicApprovalModalState
                 const SizedBox(width: 4),
                 Text(
                   '채팅에서 첨부됨 (${_chatAttachments.length}개)',
-                  style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF10B981)),
+                  style:
+                      const TextStyle(fontSize: 11, color: Color(0xFF10B981)),
                 ),
               ],
             ),
@@ -2029,8 +2030,8 @@ class _CommonElectronicApprovalModalState
                   const SizedBox(width: 4),
                   Text(
                     '직접 첨부 (${_attachments.length}개)',
-                    style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF4A6CF7)),
+                    style:
+                        const TextStyle(fontSize: 11, color: Color(0xFF4A6CF7)),
                   ),
                 ],
               ),
@@ -2215,9 +2216,7 @@ class _CommonElectronicApprovalModalState
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isDarkTheme
-            ? const Color(0xFF1E3A2F)
-            : const Color(0xFFECFDF5),
+        color: isDarkTheme ? const Color(0xFF1E3A2F) : const Color(0xFFECFDF5),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: const Color(0xFF10B981).withValues(alpha: 0.3),
@@ -2646,7 +2645,8 @@ class _CommonElectronicApprovalModalState
 
         // 성공 메시지
         if (mounted) {
-          CommonUIUtils.showSuccessSnackBar(context, '${result.files.length}개 파일이 추가되었습니다.');
+          CommonUIUtils.showSuccessSnackBar(
+              context, '${result.files.length}개 파일이 추가되었습니다.');
         }
       } else {
         print('ℹ️ 파일 선택 취소됨');
@@ -2684,7 +2684,8 @@ class _CommonElectronicApprovalModalState
       // 현재 로그인된 사용자 ID 가져오기
       final currentUserId = ref.read(userIdProvider) ?? '';
       if (currentUserId.isEmpty) {
-        CommonUIUtils.showErrorSnackBar(context, '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+        CommonUIUtils.showErrorSnackBar(
+            context, '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
         return;
       }
 
@@ -2976,7 +2977,8 @@ class _CommonElectronicApprovalModalState
       if (response.error == null) {
         print('✅ 휴가 부여 상신 성공! ID: ${response.id}');
         if (mounted) {
-          CommonUIUtils.showSuccessSnackBar(context, '휴가 부여 상신이 성공적으로 완료되었습니다. (ID: ${response.id})');
+          CommonUIUtils.showSuccessSnackBar(
+              context, '휴가 부여 상신이 성공적으로 완료되었습니다. (ID: ${response.id})');
         }
       } else {
         print('❌ 휴가 부여 상신 실패: ${response.error}');

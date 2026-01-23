@@ -236,13 +236,13 @@ class VacationUIShadows {
   /// 모달 그림자 (플로팅 효과)
   static List<BoxShadow> modalShadow(bool isDark) => [
         BoxShadow(
-          color: Colors.black.withOpacity(isDark ? 0.6 : 0.08),
+          color: Colors.black.withValues(alpha: isDark ? 0.6 : 0.08),
           blurRadius: 40,
           spreadRadius: 0,
           offset: const Offset(0, 20),
         ),
         BoxShadow(
-          color: Colors.black.withOpacity(isDark ? 0.4 : 0.04),
+          color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.04),
           blurRadius: 20,
           spreadRadius: -5,
           offset: const Offset(0, 10),
@@ -253,14 +253,14 @@ class VacationUIShadows {
   static List<BoxShadow> cardShadow(bool isDark) => [
         BoxShadow(
           color: isDark
-              ? Colors.black.withOpacity(0.3)
-              : const Color(0xFF667EEA).withOpacity(0.08),
+              ? Colors.black.withValues(alpha: 0.3)
+              : const Color(0xFF667EEA).withValues(alpha: 0.08),
           blurRadius: 24,
           spreadRadius: 0,
           offset: const Offset(0, 6),
         ),
         BoxShadow(
-          color: Colors.black.withOpacity(0.05),
+          color: Colors.black.withValues(alpha: 0.05),
           blurRadius: 12,
           offset: const Offset(0, 3),
         ),
@@ -269,7 +269,7 @@ class VacationUIShadows {
   /// 아이콘 글로우 효과
   static List<BoxShadow> iconGlowShadow() => [
         BoxShadow(
-          color: const Color(0xFF667EEA).withOpacity(0.4),
+          color: const Color(0xFF667EEA).withValues(alpha: 0.4),
           blurRadius: 12,
           offset: const Offset(0, 4),
         ),

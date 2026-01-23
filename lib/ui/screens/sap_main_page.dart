@@ -167,15 +167,15 @@ class SapMainPage extends ConsumerWidget {
                       data: Theme.of(context).copyWith(
                         scrollbarTheme: ScrollbarThemeData(
                           thumbColor:
-                              MaterialStatePropertyAll(Colors.grey[400]),
-                          trackColor: const MaterialStatePropertyAll(
+                              WidgetStatePropertyAll(Colors.grey[400]),
+                          trackColor: const WidgetStatePropertyAll(
                               Colors.transparent),
-                          thickness: const MaterialStatePropertyAll(8.0),
+                          thickness: const WidgetStatePropertyAll(8.0),
                           radius: const Radius.circular(4),
                           thumbVisibility:
-                              const MaterialStatePropertyAll(false),
+                              const WidgetStatePropertyAll(false),
                           trackVisibility:
-                              const MaterialStatePropertyAll(false),
+                              const WidgetStatePropertyAll(false),
                         ),
                       ),
                       child: Scrollbar(
@@ -630,7 +630,7 @@ class SapMainPage extends ConsumerWidget {
                                                                 materialTapTargetSize:
                                                                     MaterialTapTargetSize
                                                                         .shrinkWrap,
-                                                                activeColor: Theme.of(
+                                                                activeThumbColor: Theme.of(
                                                                         context)
                                                                     .colorScheme
                                                                     .primary,

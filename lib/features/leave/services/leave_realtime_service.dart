@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dart_amqp/dart_amqp.dart' as amqp;
 import 'package:ASPN_AI_AGENT/core/config/messageq_config.dart';
-import 'package:ASPN_AI_AGENT/provider/leave_management_provider.dart';
+import 'package:ASPN_AI_AGENT/features/leave/providers/leave_management_provider.dart';
 
 /// 휴가 실시간 알림 서비스
 /// - leave.approval.user_id: 결재 요청 (승인자만)

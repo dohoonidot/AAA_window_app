@@ -11,7 +11,7 @@ import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:ASPN_AI_AGENT/shared/services/api_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:ASPN_AI_AGENT/features/leave/approver_selection_modal.dart';
 import 'package:ASPN_AI_AGENT/core/config/app_config.dart';
@@ -1713,6 +1713,7 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
         // 현재 로그인된 사용자 ID 가져오기
         final currentUserId = ref.read(userIdProvider) ?? '';
         if (currentUserId.isEmpty) {
+          if (!mounted) return;
           CommonUIUtils.showErrorSnackBar(
               context, '로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
           return;
@@ -2001,67 +2002,60 @@ class _LeaveDraftModalState extends ConsumerState<LeaveDraftModal>
   Widget _buildHalfDayTimeSelection() {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Transform.scale(
-          scale: 0.9,
-          child: Radio<String>(
-            value: '오전반차',
-            groupValue: _halfDayType,
-            onChanged: (value) {
+    return RadioGroup<String>(
+      groupValue: _halfDayType,
+      onChanged: (value) {
+        setState(() {
+          _halfDayType = value;
+        });
+        _updateField('halfDayType', value);
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Transform.scale(
+            scale: 0.9,
+            child: Radio<String>(
+              value: '오전반차',
+            ),
+          ),
+          Text(
+            '오전',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDarkTheme ? Colors.white : const Color(0xFF1A1D1F),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Transform.scale(
+            scale: 0.9,
+            child: Radio<String>(
+              value: '오후반차',
+            ),
+          ),
+          Text(
+            '오후',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDarkTheme ? Colors.white : const Color(0xFF1A1D1F),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
               setState(() {
-                _halfDayType = value;
+                _useHalfDay = false;
+                _halfDayType = null;
               });
-              _updateField('halfDayType', value);
             },
-            activeColor: const Color(0xFF4A6CF7),
+            child: const Icon(
+              Icons.close,
+              size: 18,
+              color: Color(0xFF8B95A1),
+            ),
           ),
-        ),
-        Text(
-          '오전',
-          style: TextStyle(
-            fontSize: 12,
-            color: isDarkTheme ? Colors.white : const Color(0xFF1A1D1F),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Transform.scale(
-          scale: 0.9,
-          child: Radio<String>(
-            value: '오후반차',
-            groupValue: _halfDayType,
-            onChanged: (value) {
-              setState(() {
-                _halfDayType = value;
-              });
-              _updateField('halfDayType', value);
-            },
-            activeColor: const Color(0xFF4A6CF7),
-          ),
-        ),
-        Text(
-          '오후',
-          style: TextStyle(
-            fontSize: 12,
-            color: isDarkTheme ? Colors.white : const Color(0xFF1A1D1F),
-          ),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _useHalfDay = false;
-              _halfDayType = null;
-            });
-          },
-          child: const Icon(
-            Icons.close,
-            size: 18,
-            color: Color(0xFF8B95A1),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -3230,14 +3224,16 @@ class _ApproverSelectionDialogState extends State<ApproverSelectionDialog> {
                                       isDarkTheme ? Colors.white : Colors.black,
                                 ),
                               ),
-                              trailing: Radio<String>(
-                                value: person.name,
+                              trailing: RadioGroup<String>(
                                 groupValue: _selectedApproverId,
                                 onChanged: (value) {
                                   setState(() {
                                     _selectedApproverId = value;
                                   });
                                 },
+                                child: Radio<String>(
+                                  value: person.name,
+                                ),
                               ),
                               onTap: () {
                                 setState(() {

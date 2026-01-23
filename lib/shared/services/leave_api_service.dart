@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:ASPN_AI_AGENT/core/config/app_config.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 
 /// 휴가 관련 API 서비스
 ///

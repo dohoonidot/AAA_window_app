@@ -25,10 +25,10 @@ import 'package:ASPN_AI_AGENT/shared/providers/chat_state.dart';
 import 'package:ASPN_AI_AGENT/ui/theme/color_schemes.dart'; // AppThemeMode 추가
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ASPN_AI_AGENT/core/database/auto_login_service.dart'; // 추가
-import 'package:ASPN_AI_AGENT/provider/leave_management_provider.dart'; // 휴가관리 프로바이더 추가
+import 'package:ASPN_AI_AGENT/features/leave/providers/leave_management_provider.dart'; // 휴가관리 프로바이더 추가
 import 'package:ASPN_AI_AGENT/features/leave/leave_providers.dart'; // 휴가 관련 프로바이더들 추가
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart'; // 휴가 API 서비스 추가
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart'; // AdminApprovalRequest 모델 추가
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart'; // AdminApprovalRequest 모델 추가
 
 import 'package:window_manager/window_manager.dart';
 import 'package:ASPN_AI_AGENT/shared/services/amqp_service.dart';
@@ -536,6 +536,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
     if (userId == null) {
       // 사용자 아이디가 없을 때 처리 (예: 로그인 페이지로 이동)
       Future.microtask(() {
+        if (!context.mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -658,6 +659,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
         ref.read(userIdProvider.notifier).state = null;
 
         // 로그인 페이지로 이동
+        if (!context.mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const LoginPage()),
           (Route<dynamic> route) => false,
@@ -1557,6 +1559,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
     if (label == '받은선물함') {
       // 받은선물함 클릭 시 선물 개수 업데이트
       await _updateGiftCount();
+      if (!context.mounted) return;
       _showGiftBox(context, ref);
     } else if (label == '전자결재') {
       // 전자결재 화면으로 이동
@@ -1567,18 +1570,20 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
     } else if (label == '휴가관리') {
       // 승인자 여부 확인
       final isApprover = ref.read(approverProvider);
-      
+
       if (isApprover) {
         // 승인자인 경우: 관리자 휴가관리 페이지로 이동
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const AdminLeaveApprovalScreen()),
+          MaterialPageRoute(
+              builder: (context) => const AdminLeaveApprovalScreen()),
         );
       } else {
         // 일반사용자인 경우: 기존 휴가관리 페이지로 이동
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const LeaveManagementScreen()),
+          MaterialPageRoute(
+              builder: (context) => const LeaveManagementScreen()),
         );
       }
     } else if (label == 'GroupWare') {
@@ -3257,7 +3262,8 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             final safeContext = navigatorKey.currentContext;
                             if (safeContext != null && safeContext.mounted) {
-                              _showAlertDetail(safeContext, savedAlert, savedRef);
+                              _showAlertDetail(
+                                  safeContext, savedAlert, savedRef);
                             } else {
                               print('⚠️ 알림 상세보기: 유효한 context를 찾을 수 없습니다.');
                             }
@@ -3469,56 +3475,10 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                                   textAlign: TextAlign.left, // 왼쪽 정렬로 변경
                                 )
                               : queueName == 'leave.analyze'
-                                  ? _buildLeaveRecommendationContent(message, isDarkTheme)
-                              : queueName == 'leave'
-                                  ? SelectableText(
-                                      _sanitizeText(message),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: isDarkTheme
-                                            ? Colors.grey[300]
-                                            : Color(0xFF6B7280),
-                                        fontWeight: FontWeight.w500,
-                                        height: 1.5,
-                                      ),
-                                      textAlign: TextAlign.left,
-                                    )
-                                  : queueName == 'birthday' || queueName == 'gift'
-                                      ? Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.cake,
-                                                color: Color(0xFF6C5CE7), size: 32),
-                                            SizedBox(height: 14),
-                                            Text(
-                                              '🎉 알림 메시지',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: isDarkTheme
-                                                    ? Colors.white
-                                                    : Color(0xFF191F28),
-                                                letterSpacing: -0.5,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            SizedBox(height: 10),
-                                            SelectableText(
-                                              _sanitizeText(message),
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                color: isDarkTheme
-                                                    ? Colors.grey[300]
-                                                    : Color(0xFF6B7280),
-                                                fontWeight: FontWeight.w500,
-                                                height: 1.5,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ],
-                                        )
-                                      : SelectableText(
+                                  ? _buildLeaveRecommendationContent(
+                                      message, isDarkTheme)
+                                  : queueName == 'leave'
+                                      ? SelectableText(
                                           _sanitizeText(message),
                                           style: TextStyle(
                                             fontSize: 15,
@@ -3529,7 +3489,56 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                                             height: 1.5,
                                           ),
                                           textAlign: TextAlign.left,
-                                        ),
+                                        )
+                                      : queueName == 'birthday' ||
+                                              queueName == 'gift'
+                                          ? Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.cake,
+                                                    color: Color(0xFF6C5CE7),
+                                                    size: 32),
+                                                SizedBox(height: 14),
+                                                Text(
+                                                  '🎉 알림 메시지',
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isDarkTheme
+                                                        ? Colors.white
+                                                        : Color(0xFF191F28),
+                                                    letterSpacing: -0.5,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                                SizedBox(height: 10),
+                                                SelectableText(
+                                                  _sanitizeText(message),
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: isDarkTheme
+                                                        ? Colors.grey[300]
+                                                        : Color(0xFF6B7280),
+                                                    fontWeight: FontWeight.w500,
+                                                    height: 1.5,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ],
+                                            )
+                                          : SelectableText(
+                                              _sanitizeText(message),
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: isDarkTheme
+                                                    ? Colors.grey[300]
+                                                    : Color(0xFF6B7280),
+                                                fontWeight: FontWeight.w500,
+                                                height: 1.5,
+                                              ),
+                                              textAlign: TextAlign.left,
+                                            ),
                         ),
 
                         SizedBox(height: 24),
@@ -3990,16 +3999,17 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                                     .read(notificationProvider.notifier)
                                     .deleteAlertWithAPI(userId!, alertId);
 
+                                if (!context.mounted) return;
                                 Navigator.of(context).pop();
                                 _handleNotificationTap(context, ref);
 
-                                if (mounted) {
+                                if (context.mounted) {
                                   CommonUIUtils.showSuccessSnackBar(
                                       context, '알림이 삭제되었습니다.');
                                 }
                               } catch (e) {
                                 print('❌ 알림 삭제 실패: $e');
-                                if (mounted) {
+                                if (context.mounted) {
                                   CommonUIUtils.showErrorSnackBar(
                                       context, '알림 삭제에 실패했습니다.');
                                 }
@@ -4242,55 +4252,68 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
 
       // 2. 마크다운 문법 제거
       // 헤더 (#, ##, ### 등)
-      sanitized = sanitized.replaceAll(RegExp(r'^#{1,6}\s+', multiLine: true), '');
-      
+      sanitized =
+          sanitized.replaceAll(RegExp(r'^#{1,6}\s+', multiLine: true), '');
+
       // 볼드 (**text**, __text__)
       sanitized = sanitized.replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'$1');
       sanitized = sanitized.replaceAll(RegExp(r'__([^_]+)__'), r'$1');
-      
+
       // 이탤릭 (*text*, _text_)
-      sanitized = sanitized.replaceAll(RegExp(r'(?<!\*)\*([^*]+)\*(?!\*)'), r'$1');
+      sanitized =
+          sanitized.replaceAll(RegExp(r'(?<!\*)\*([^*]+)\*(?!\*)'), r'$1');
       sanitized = sanitized.replaceAll(RegExp(r'(?<!_)_([^_]+)_(?!_)'), r'$1');
-      
+
       // 코드 블록 (```...```)
-      sanitized = sanitized.replaceAll(RegExp(r'```[\s\S]*?```', multiLine: true), '');
+      sanitized =
+          sanitized.replaceAll(RegExp(r'```[\s\S]*?```', multiLine: true), '');
       sanitized = sanitized.replaceAll(RegExp(r'`([^`]+)`'), r'$1');
-      
+
       // 링크 [text](url)
-      sanitized = sanitized.replaceAll(RegExp(r'\[([^\]]+)\]\([^\)]+\)'), r'$1');
-      
+      sanitized =
+          sanitized.replaceAll(RegExp(r'\[([^\]]+)\]\([^\)]+\)'), r'$1');
+
       // 이미지 ![alt](url)
-      sanitized = sanitized.replaceAll(RegExp(r'!\[([^\]]*)\]\([^\)]+\)'), r'$1');
-      
+      sanitized =
+          sanitized.replaceAll(RegExp(r'!\[([^\]]*)\]\([^\)]+\)'), r'$1');
+
       // 리스트 (-, *, +)
-      sanitized = sanitized.replaceAll(RegExp(r'^[\s]*[-*+]\s+', multiLine: true), '');
-      sanitized = sanitized.replaceAll(RegExp(r'^\d+\.\s+', multiLine: true), '');
-      
+      sanitized =
+          sanitized.replaceAll(RegExp(r'^[\s]*[-*+]\s+', multiLine: true), '');
+      sanitized =
+          sanitized.replaceAll(RegExp(r'^\d+\.\s+', multiLine: true), '');
+
       // 표 (|)
       sanitized = sanitized.replaceAll(RegExp(r'\|'), ' ');
-      
+
       // 수평선 (---, ***)
-      sanitized = sanitized.replaceAll(RegExp(r'^[-*]{3,}$', multiLine: true), '');
-      
+      sanitized =
+          sanitized.replaceAll(RegExp(r'^[-*]{3,}$', multiLine: true), '');
+
       // 인용 (>)
       sanitized = sanitized.replaceAll(RegExp(r'^>\s+', multiLine: true), '');
-      
+
       // 줄바꿈 정리 (연속된 줄바꿈을 하나로)
       sanitized = sanitized.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-      
+
       // 앞뒤 공백 제거
       sanitized = sanitized.trim();
-      
+
       // 연속된 공백을 하나로
       sanitized = sanitized.replaceAll(RegExp(r' {2,}'), ' ');
-      
+
       // JSON 데이터 제거 (leave 큐의 경우)
-      sanitized = sanitized.replaceAll(RegExp(r'\{[^{}]*"leaves"[^{}]*\}', dotAll: true), '');
-      sanitized = sanitized.replaceAll(RegExp(r'\{[^{}]*"weekday_counts"[^{}]*\}', dotAll: true), '');
-      sanitized = sanitized.replaceAll(RegExp(r'"weekday_counts"[^}]*', dotAll: true), '');
-      sanitized = sanitized.replaceAll(RegExp(r'"holiday_adjacent[^}]*', dotAll: true), '');
-      sanitized = sanitized.replaceAll(RegExp(r'"total_leave_days"[^}]*', dotAll: true), '');
-      
+      sanitized = sanitized.replaceAll(
+          RegExp(r'\{[^{}]*"leaves"[^{}]*\}', dotAll: true), '');
+      sanitized = sanitized.replaceAll(
+          RegExp(r'\{[^{}]*"weekday_counts"[^{}]*\}', dotAll: true), '');
+      sanitized = sanitized.replaceAll(
+          RegExp(r'"weekday_counts"[^}]*', dotAll: true), '');
+      sanitized = sanitized.replaceAll(
+          RegExp(r'"holiday_adjacent[^}]*', dotAll: true), '');
+      sanitized = sanitized.replaceAll(
+          RegExp(r'"total_leave_days"[^}]*', dotAll: true), '');
+
       if (sanitized.isEmpty) return '알림 내용';
 
       return sanitized;
@@ -5216,7 +5239,8 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                 if (requestId.isEmpty) {
                   print('🔴 requestId가 비어있음! API 호출 불가능');
                   if (mounted) {
-                    CommonUIUtils.showErrorSnackBar(context, '휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.');
+                    CommonUIUtils.showErrorSnackBar(
+                        context, '휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.');
                   }
                   return;
                 }
@@ -5248,11 +5272,11 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                 print('  - result type: ${result.runtimeType}');
                 print('  - result.error: ${result.error}');
 
-                if (!mounted) return; // 위젯이 dispose된 경우 종료
+                if (!context.mounted) return; // 위젯이 dispose된 경우 종료
 
                 if (result.error == null) {
                   print('🟢 승인 처리 성공 - UI에서 요청 제거');
-                  if (mounted) {
+                  if (context.mounted) {
                     setState(() {
                       _approvalRequests.remove(request);
                     });
@@ -5260,15 +5284,17 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                   }
                 } else {
                   print('🔴 승인 처리 실패 - error: ${result.error}');
-                  if (mounted) {
-                    CommonUIUtils.showErrorSnackBar(context, '승인 처리 실패: ${result.error}');
+                  if (context.mounted) {
+                    CommonUIUtils.showErrorSnackBar(
+                        context, '승인 처리 실패: ${result.error}');
                   }
                 }
               } catch (e) {
                 print('🔴 휴가 승인 API 호출 중 Exception 발생: $e');
                 print('🔴 Exception Stack Trace: ${StackTrace.current}');
-                if (mounted) {
-                  CommonUIUtils.showErrorSnackBar(context, '승인 처리 중 오류가 발생했습니다: $e');
+                if (context.mounted) {
+                  CommonUIUtils.showErrorSnackBar(
+                      context, '승인 처리 중 오류가 발생했습니다: $e');
                 }
               }
             },
@@ -5370,7 +5396,8 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                 if (requestId.isEmpty) {
                   print('🔴 requestId가 비어있음! API 호출 불가능');
                   if (mounted) {
-                    CommonUIUtils.showErrorSnackBar(context, '휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.');
+                    CommonUIUtils.showErrorSnackBar(
+                        context, '휴가 신청 ID를 찾을 수 없습니다. 서버에 문의하세요.');
                   }
                   return;
                 }
@@ -5402,11 +5429,11 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                 print('  - result type: ${result.runtimeType}');
                 print('  - result.error: ${result.error}');
 
-                if (!mounted) return; // 위젯이 dispose된 경우 종료
+                if (!context.mounted) return; // 위젯이 dispose된 경우 종료
 
                 if (result.error == null) {
                   print('🟢 반료 처리 성공 - UI에서 요청 제거');
-                  if (mounted) {
+                  if (context.mounted) {
                     setState(() {
                       _approvalRequests.remove(request);
                     });
@@ -5414,15 +5441,17 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                   }
                 } else {
                   print('🔴 반료 처리 실패 - error: ${result.error}');
-                  if (mounted) {
-                    CommonUIUtils.showErrorSnackBar(context, '반려 처리 실패: ${result.error}');
+                  if (context.mounted) {
+                    CommonUIUtils.showErrorSnackBar(
+                        context, '반려 처리 실패: ${result.error}');
                   }
                 }
               } catch (e) {
                 print('🔴 휴가 반료 API 호출 중 Exception 발생: $e');
                 print('🔴 Exception Stack Trace: ${StackTrace.current}');
-                if (mounted) {
-                  CommonUIUtils.showErrorSnackBar(context, '반려 처리 중 오류가 발생했습니다: $e');
+                if (context.mounted) {
+                  CommonUIUtils.showErrorSnackBar(
+                      context, '반려 처리 중 오류가 발생했습니다: $e');
                 }
               }
             },
@@ -5684,7 +5713,8 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
 
     // colon 다음의 공백을 건너뜀
     int startIndex = colonIndex + 1;
-    while (startIndex < text.length && (text[startIndex] == ' ' || text[startIndex] == '\n')) {
+    while (startIndex < text.length &&
+        (text[startIndex] == ' ' || text[startIndex] == '\n')) {
       startIndex++;
     }
 
@@ -5740,22 +5770,22 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
           // 전체 JSON 객체로 감싸서 파싱
           final fullJsonStr = '{"weekday_counts":$weekdayJsonStr}';
           weekdayCounts = jsonDecode(fullJsonStr) as Map<String, dynamic>;
-          
+
           // weekday_counts 패턴 찾기 (앞의 텍스트 포함)
           // "weekday_counts":{...} 또는 short{"weekday_counts":...} 패턴
           // 정확한 패턴: "weekday_counts":{"mon":4.5,...},} 또는 short{"weekday_counts":{...}}
-          
+
           // 방법 1: weekday_counts로 시작하는 부분 찾기 (가장 정확)
           final weekdayStartIndex = message.indexOf('"weekday_counts"');
           if (weekdayStartIndex != -1) {
             // weekday_counts 앞의 텍스트도 포함 (short, long 등)
             int searchStart = weekdayStartIndex - 20; // 앞으로 20자까지 검색
             if (searchStart < 0) searchStart = 0;
-            
+
             // weekday_counts부터 시작하여 JSON 끝까지 찾기
             int braceCount = 0;
             bool foundStart = false;
-            
+
             for (int i = weekdayStartIndex; i < message.length; i++) {
               if (message[i] == '{') {
                 braceCount++;
@@ -5766,10 +5796,12 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
                   // 앞의 텍스트도 포함하여 제거
                   String toRemove = message.substring(searchStart, i + 1);
                   // 쉼표나 공백도 함께 제거
-                  if (i + 1 < message.length && (message[i + 1] == ',' || message[i + 1] == ' ')) {
+                  if (i + 1 < message.length &&
+                      (message[i + 1] == ',' || message[i + 1] == ' ')) {
                     toRemove += message[i + 1];
                   }
-                  markdownContent = markdownContent.replaceAll(toRemove, '').trim();
+                  markdownContent =
+                      markdownContent.replaceAll(toRemove, '').trim();
                   print('✅ weekday_counts 텍스트 제거 완료');
                   break;
                 }
@@ -5791,7 +5823,9 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
       }
 
       // holiday_adjacent_usage_rate 추출
-      final holidayRateMatch = RegExp(r'"holiday_adjacent_usage_rate"\s*:\s*([\d.]+)').firstMatch(message);
+      final holidayRateMatch =
+          RegExp(r'"holiday_adjacent_usage_rate"\s*:\s*([\d.]+)')
+              .firstMatch(message);
       if (holidayRateMatch != null) {
         holidayAdjacentUsageRate = double.tryParse(holidayRateMatch.group(1)!);
       }
@@ -5800,15 +5834,26 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
       // leaves 제거
       markdownContent = markdownContent
           .replaceAll(RegExp(r'\{[^{}]*"leaves"[^{}]*\}', dotAll: true), '')
-          .replaceAll(RegExp(r'"leaves"\s*:\s*\{[^}]*\}[^}]*\}?', dotAll: true), '');
-      
+          .replaceAll(
+              RegExp(r'"leaves"\s*:\s*\{[^}]*\}[^}]*\}?', dotAll: true), '');
+
       // weekday_counts 제거 (다양한 패턴)
       markdownContent = markdownContent
-          .replaceAll(RegExp(r'"weekday_counts"\s*:\s*\{[^}]*\}[^}]*\}?[,\s]*', dotAll: true), '')
-          .replaceAll(RegExp(r'[^{]*"weekday_counts"[^{}]*\{[^}]*\}[^}]*\}?[,\s]*', dotAll: true), '')
-          .replaceAll(RegExp(r'short\s*\{[^}]*"weekday_counts"[^}]*\}', dotAll: true), '')
-          .replaceAll(RegExp(r'long\s*\{[^}]*"weekday_counts"[^}]*\}', dotAll: true), '');
-      
+          .replaceAll(
+              RegExp(r'"weekday_counts"\s*:\s*\{[^}]*\}[^}]*\}?[,\s]*',
+                  dotAll: true),
+              '')
+          .replaceAll(
+              RegExp(r'[^{]*"weekday_counts"[^{}]*\{[^}]*\}[^}]*\}?[,\s]*',
+                  dotAll: true),
+              '')
+          .replaceAll(
+              RegExp(r'short\s*\{[^}]*"weekday_counts"[^}]*\}', dotAll: true),
+              '')
+          .replaceAll(
+              RegExp(r'long\s*\{[^}]*"weekday_counts"[^}]*\}', dotAll: true),
+              '');
+
       // 기타 JSON 패턴 제거
       markdownContent = markdownContent
           .replaceAll(RegExp(r'"holiday_adjacent[^}]*', dotAll: true), '')
@@ -5837,7 +5882,8 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
           ],
 
           // 2. weekday_counts 차트 (데이터가 있을 때만 표시)
-          if (weekdayCounts != null && weekdayCounts['weekday_counts'] != null) ...[
+          if (weekdayCounts != null &&
+              weekdayCounts['weekday_counts'] != null) ...[
             _buildLeaveSectionTitle('📊 요일별 연차 사용량', isDarkTheme),
             const SizedBox(height: 14),
             GradientCard(
@@ -5890,7 +5936,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
 
       // leaves 데이터 구조: {"2025":{"01":1.5,"02":0.0,...}}
       Map<int, double> monthlyData = {};
-      
+
       for (var yearEntry in leaves.entries) {
         final yearData = yearEntry.value;
         if (yearData is Map<String, dynamic>) {
@@ -5898,7 +5944,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
           for (var monthEntry in yearData.entries) {
             final monthStr = monthEntry.key; // "01", "02", ...
             final days = (monthEntry.value as num).toDouble();
-            
+
             try {
               final month = int.parse(monthStr);
               monthlyData[month] = (monthlyData[month] ?? 0) + days;
@@ -5910,7 +5956,7 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
           // 기존 형식 (날짜 문자열)도 지원
           final dateStr = yearEntry.key;
           final days = (yearEntry.value as num).toDouble();
-          
+
           try {
             final date = DateTime.parse(dateStr);
             final month = date.month;
@@ -5944,9 +5990,11 @@ class _ChatHomePageState extends ConsumerState<ChatHomePage>
   }
 
   /// weekday_counts를 WeekdayDistributionChart 형식으로 변환
-  Widget _buildWeekdayChart(Map<String, dynamic> weekdayData, bool isDarkTheme) {
+  Widget _buildWeekdayChart(
+      Map<String, dynamic> weekdayData, bool isDarkTheme) {
     try {
-      final weekdayCounts = weekdayData['weekday_counts'] as Map<String, dynamic>?;
+      final weekdayCounts =
+          weekdayData['weekday_counts'] as Map<String, dynamic>?;
       if (weekdayCounts == null || weekdayCounts.isEmpty) {
         return const SizedBox(
           height: 250,

@@ -1,6 +1,6 @@
 // import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:intl/intl.dart';
 

@@ -149,11 +149,15 @@ class FileAttachmentUtils {
       }
 
       attachmentNotifier.addFiles(platformFiles);
-      _showSuccessMessage(context, '파일이 첨부되었습니다.');
+      if (context.mounted) {
+        _showSuccessMessage(context, '파일이 첨부되었습니다.');
+      }
       print('=== handleDragAccept 성공 ===\n');
     } catch (e) {
       print('❌ handleDragAccept 실패: $e');
-      _showErrorMessage(context, '파일 첨부 중 오류가 발생했습니다: $e');
+      if (context.mounted) {
+        _showErrorMessage(context, '파일 첨부 중 오류가 발생했습니다: $e');
+      }
     }
   }
 

@@ -361,6 +361,7 @@ class SidebarState extends ConsumerState<Sidebar>
                             ).then((confirmed) {
                               if (confirmed == true) {
                                 // 선택된 아카이브 일괄 삭제 실행
+                                if (!context.mounted) return;
                                 ref
                                     .read(chatProvider.notifier)
                                     .deleteSelectedArchives(
@@ -414,13 +415,13 @@ class SidebarState extends ConsumerState<Sidebar>
             child: Theme(
               data: Theme.of(context).copyWith(
                 scrollbarTheme: ScrollbarThemeData(
-                  thumbColor: MaterialStateProperty.all(
+                  thumbColor: WidgetStateProperty.all(
                       Colors.grey.withValues(alpha: 0.4)),
-                  thickness: MaterialStateProperty.all(6.0),
+                  thickness: WidgetStateProperty.all(6.0),
                   radius: const Radius.circular(10),
-                  thumbVisibility: MaterialStateProperty.all(true),
-                  trackVisibility: MaterialStateProperty.all(false),
-                  trackColor: MaterialStateProperty.all(Colors.transparent),
+                  thumbVisibility: WidgetStateProperty.all(true),
+                  trackVisibility: WidgetStateProperty.all(false),
+                  trackColor: WidgetStateProperty.all(Colors.transparent),
                 ),
               ),
               child: Scrollbar(
@@ -591,8 +592,8 @@ class SidebarState extends ConsumerState<Sidebar>
                                                 }..remove(topicId);
                                               }
                                             },
-                                            fillColor: MaterialStateProperty
-                                                .resolveWith(
+                                            fillColor:
+                                                WidgetStateProperty.resolveWith(
                                                     (states) => Colors.white),
                                             checkColor: Colors.blue,
                                           )
@@ -1074,6 +1075,7 @@ class SidebarState extends ConsumerState<Sidebar>
         // 기본 아카이브 이름들로는 변경할 수 없도록 제한
         final restrictedNames = ['사내업무', 'AI Chatbot', '코딩어시스턴트', 'SAP 어시스턴트'];
         if (restrictedNames.contains(newTitle)) {
+          if (!context.mounted) return;
           CommonUIUtils.showWarningSnackBar(
               context, '"$newTitle"는 기본 아카이브 이름으로 사용할 수 없습니다.');
           return;
@@ -1115,6 +1117,7 @@ class SidebarState extends ConsumerState<Sidebar>
       dialogContent,
     ).then((confirmed) {
       if (confirmed == true) {
+        if (!context.mounted) return;
         if (isDefaultArchive) {
           // 기본 아카이브인 경우 삭제 후 재생성
           _deleteAndRecreateDefaultArchive(
@@ -1925,9 +1928,10 @@ class SidebarState extends ConsumerState<Sidebar>
         _isSearching = false;
       });
 
-      // 사용자에게 오류 알림
-      if (context.mounted) {
-        CommonUIUtils.showErrorSnackBar(context, '검색 중 오류가 발생했습니다: $e');
+      // 사용자에게 오류 알림 (await 이후 context 사용 전 재확인)
+      final currentContext = context;
+      if (currentContext.mounted) {
+        CommonUIUtils.showErrorSnackBar(currentContext, '검색 중 오류가 발생했습니다: $e');
       }
     }
   }
@@ -2144,12 +2148,13 @@ class SidebarState extends ConsumerState<Sidebar>
   void _navigateToLeaveManagement(BuildContext context) {
     // 승인자 여부 확인
     final isApprover = ref.read(approverProvider);
-    
+
     if (isApprover) {
       // 승인자인 경우: 관리자 휴가관리 페이지로 이동
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const AdminLeaveApprovalScreen()),
+        MaterialPageRoute(
+            builder: (context) => const AdminLeaveApprovalScreen()),
       );
     } else {
       // 일반사용자인 경우: 기존 휴가관리 페이지로 이동

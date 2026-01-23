@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
-import 'package:ASPN_AI_AGENT/features/leave/leave_providers_simple.dart';
+import 'package:ASPN_AI_AGENT/features/leave/leave_providers.dart';
 import 'package:ASPN_AI_AGENT/features/leave/admin_calendar_sidebar.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:ASPN_AI_AGENT/shared/services/api_service.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/ui/screens/leave_management_screen.dart'; // 일반사용자 휴가관리 화면 추가
 import 'package:ASPN_AI_AGENT/ui/screens/chat_home_page_v5.dart';
 
@@ -210,10 +210,12 @@ class _AdminLeaveApprovalScreenState
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        _exitToChatHome();
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _exitToChatHome();
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -446,8 +448,11 @@ class _AdminLeaveApprovalScreenState
 
   Widget _buildStatsHeader() {
     final adminManagement = ref.watch(adminManagementProvider);
-    final leaveHistory = ref.watch(leaveRequestHistoryProvider);
+    final leaveHistoryAsync = ref.watch(leaveRequestHistoryProvider);
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
+    // AsyncValue에서 데이터 추출 (로딩/에러 시 빈 리스트)
+    final leaveHistory = leaveHistoryAsync.valueOrNull ?? [];
 
     // API 응답의 approval_status 사용 (없으면 기존 방식으로 폴백)
     int pendingCount = 0;
@@ -1510,6 +1515,7 @@ class _AdminLeaveApprovalScreenState
             ElevatedButton(
               onPressed: () async {
                 await _processCancelApproval(request);
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
@@ -1675,6 +1681,7 @@ class _AdminLeaveApprovalScreenState
 
                 await _processApproval(
                     request, isApproval, commentController.text.trim());
+                if (!context.mounted) return;
                 Navigator.of(context).pop();
                 // 결재 처리 후 다이얼로그만 닫고 관리자 화면 유지
               },
@@ -1733,6 +1740,7 @@ class _AdminLeaveApprovalScreenState
           _currentPage = 0; // 페이지네이션 초기화
         });
 
+        if (!mounted) return success;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('휴가 신청이 ${statusText}되었습니다.'),
@@ -1742,6 +1750,7 @@ class _AdminLeaveApprovalScreenState
           ),
         );
       } else {
+        if (!mounted) return success;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('처리 중 오류가 발생했습니다.'),
@@ -1752,6 +1761,7 @@ class _AdminLeaveApprovalScreenState
       }
       return success;
     } catch (e) {
+      if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('오류: $e'),
@@ -1786,6 +1796,7 @@ class _AdminLeaveApprovalScreenState
           _currentPage = 0; // 페이지네이션 초기화
         });
 
+        if (!mounted) return success;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('휴가 취소가 승인되었습니다.'),
@@ -1794,6 +1805,7 @@ class _AdminLeaveApprovalScreenState
           ),
         );
       } else {
+        if (!mounted) return success;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('처리 중 오류가 발생했습니다.'),

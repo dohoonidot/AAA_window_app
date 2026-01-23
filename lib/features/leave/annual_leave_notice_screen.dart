@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:ASPN_AI_AGENT/shared/services/contest_api_service.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 
 class AnnualLeaveNoticeScreen extends ConsumerStatefulWidget {
   const AnnualLeaveNoticeScreen({super.key});

@@ -382,9 +382,11 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
         });
 
         // 로딩 다이얼로그 닫기
+        if (!context.mounted) return;
         Navigator.of(context).pop();
 
         // 성공 메시지 표시
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('신청서가 성공적으로 제출되었습니다. (ID: ${_contestId ?? 'N/A'})'),
@@ -400,7 +402,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
     } catch (e) {
       print('❌ 신청서 제출 실패: $e');
 
-      if (mounted) {
+      if (context.mounted) {
         // 로딩 다이얼로그 닫기
         Navigator.of(context).pop();
 
@@ -459,6 +461,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
           }
         });
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${_selectedFiles.length}개의 이미지가 선택되었습니다.'),
@@ -468,6 +471,7 @@ class _ContestScreenState extends ConsumerState<ContestScreen> {
       }
     } catch (e) {
       print('❌ 파일 선택 실패: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('파일 선택 중 오류가 발생했습니다.'),

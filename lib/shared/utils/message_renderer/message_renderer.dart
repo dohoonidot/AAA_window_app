@@ -848,6 +848,7 @@ class MessageRenderer {
           print('  - gifts 길이: ${gifts.length}');
           print('  - gifts 내용: $gifts');
 
+          if (!context.mounted) return;
           if (gifts.isEmpty) {
             print('선물함이 비어있습니다');
             // 빈 선물함 표시
@@ -863,11 +864,15 @@ class MessageRenderer {
           }
         } else {
           print('User ID is null, cannot call checkGifts API');
-          CommonUIUtils.showErrorSnackBar(context, '사용자 정보를 찾을 수 없습니다.');
+          if (context.mounted) {
+            CommonUIUtils.showErrorSnackBar(context, '사용자 정보를 찾을 수 없습니다.');
+          }
         }
       } catch (e) {
         print('Error calling checkGifts API or getting user ID: $e');
-        CommonUIUtils.showErrorSnackBar(context, '선물함을 여는 데 실패했습니다.');
+        if (context.mounted) {
+          CommonUIUtils.showErrorSnackBar(context, '선물함을 여는 데 실패했습니다.');
+        }
       }
     }
   }
@@ -1487,9 +1492,13 @@ class MessageRenderer {
   static void _copyToClipboard(BuildContext context, String text) async {
     try {
       await Clipboard.setData(ClipboardData(text: text));
-      CommonUIUtils.showSuccessSnackBar(context, '클립보드에 복사되었습니다');
+      if (context.mounted) {
+        CommonUIUtils.showSuccessSnackBar(context, '클립보드에 복사되었습니다');
+      }
     } catch (e) {
-      CommonUIUtils.showErrorSnackBar(context, '복사 실패: $e');
+      if (context.mounted) {
+        CommonUIUtils.showErrorSnackBar(context, '복사 실패: $e');
+      }
     }
   }
 

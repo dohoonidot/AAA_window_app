@@ -10,8 +10,8 @@ import 'package:ASPN_AI_AGENT/features/leave/full_calendar_modal.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_request_manual_modal.dart';
 import 'package:ASPN_AI_AGENT/ui/screens/admin_leave_approval_screen.dart'
     as admin_leave_approval_screen;
-import 'package:ASPN_AI_AGENT/provider/leave_management_provider.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/features/leave/providers/leave_management_provider.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:ASPN_AI_AGENT/shared/services/api_service.dart';
@@ -445,10 +445,12 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
   Widget build(BuildContext context) {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
-    return WillPopScope(
-      onWillPop: () async {
-        _exitToChatHome();
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _exitToChatHome();
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -625,11 +627,13 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
         }
       } else {
         // 실패 시 에러 메시지 표시
+        if (!mounted) return;
         CommonUIUtils.showErrorSnackBar(
             context, response.error ?? '연도별 데이터 로드에 실패했습니다.');
       }
     } catch (e) {
       // 예외 발생 시 에러 메시지 표시
+      if (!mounted) return;
       CommonUIUtils.showErrorSnackBar(context, '연도별 데이터 로드 중 오류가 발생했습니다: $e');
     }
   }
@@ -776,6 +780,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                   setState(() {
                     _isLeaveDetailModalVisible = false; // 상세 모달 닫기
                   });
+                  if (!context.mounted) return;
                   CommonUIUtils.showSuccessSnackBar(
                       context, '휴가 취소 상신이 완료되었습니다.');
                   // 데이터 새로고침
@@ -784,10 +789,12 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                       .read(leaveManagementProvider.notifier)
                       .loadLeaveManagementData(currentUserId);
                 } else {
+                  if (!context.mounted) return;
                   CommonUIUtils.showErrorSnackBar(
                       context, '취소 상신 실패: ${result.error}');
                 }
               } catch (e) {
+                if (!context.mounted) return;
                 CommonUIUtils.showErrorSnackBar(
                     context, '취소 상신 중 오류가 발생했습니다: $e');
               }

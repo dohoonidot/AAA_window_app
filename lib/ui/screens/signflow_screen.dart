@@ -1464,6 +1464,7 @@ class _SignFlowScreenState extends ConsumerState<SignFlowScreen> {
   Future<void> _saveDraft() async {
     final success = await ref.read(signflowDraftProvider.notifier).saveDraft();
     if (success) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('임시저장이 완료되었습니다')),
       );
@@ -1511,6 +1512,7 @@ class _SignFlowScreenState extends ConsumerState<SignFlowScreen> {
         name: '전자결재_${values['title'] ?? '제목없음'}.pdf',
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('PDF 생성 중 오류가 발생했습니다: $e')),
       );
@@ -1589,6 +1591,7 @@ class _SignFlowScreenState extends ConsumerState<SignFlowScreen> {
       final success =
           await ref.read(signflowDraftProvider.notifier).submitDraft();
       if (success) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('결재가 상신되었습니다')),
         );

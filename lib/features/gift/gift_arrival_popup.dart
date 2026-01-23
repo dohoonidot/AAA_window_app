@@ -126,8 +126,8 @@ class _GiftArrivalPopupState extends State<GiftArrivalPopup>
         ? Colors.purple.shade400
         : (widget.giftColor ?? Colors.orange);
 
-    return WillPopScope(
-      onWillPop: () async => true,
+    return PopScope(
+      canPop: true,
       child: Material(
         type: MaterialType.transparency,
         child: GestureDetector(

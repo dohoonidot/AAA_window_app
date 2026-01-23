@@ -11,7 +11,7 @@ import 'package:ASPN_AI_AGENT/ui/theme/app_theme.dart';
 import 'package:ASPN_AI_AGENT/shared/services/amqp_service.dart';
 import 'package:ASPN_AI_AGENT/shared/utils/app_version_utils.dart';
 import 'package:ASPN_AI_AGENT/update/update_service.dart';
-import 'package:ASPN_AI_AGENT/provider/leave_management_provider.dart';
+import 'package:ASPN_AI_AGENT/features/leave/providers/leave_management_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

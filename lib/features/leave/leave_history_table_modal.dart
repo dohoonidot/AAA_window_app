@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
-import 'package:ASPN_AI_AGENT/features/leave/leave_providers_simple.dart';
+import 'package:ASPN_AI_AGENT/features/leave/leave_providers.dart';
 import 'package:intl/intl.dart';
 
 enum SortColumn {
@@ -36,7 +36,47 @@ class _LeaveHistoryTableModalState
 
   @override
   Widget build(BuildContext context) {
-    final leaveHistory = ref.watch(leaveRequestHistoryProvider);
+    final leaveHistoryAsync = ref.watch(leaveRequestHistoryProvider);
+
+    return leaveHistoryAsync.when(
+      data: (leaveHistory) => _buildContent(context, leaveHistory),
+      loading: () => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 900,
+          height: 700,
+          padding: const EdgeInsets.all(24),
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 900,
+          height: 700,
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('데이터를 불러오는데 실패했습니다.\n$error',
+                    textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('닫기'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<LeaveRequestHistory> leaveHistory) {
     final sortedHistory = _getSortedAndFilteredHistory(leaveHistory);
 
     return Dialog(

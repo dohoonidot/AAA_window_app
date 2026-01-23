@@ -737,7 +737,7 @@ class ChatArea extends ConsumerWidget {
                                                     materialTapTargetSize:
                                                         MaterialTapTargetSize
                                                             .shrinkWrap,
-                                                    activeColor:
+                                                    activeThumbColor:
                                                         Theme.of(context)
                                                             .colorScheme
                                                             .primary,

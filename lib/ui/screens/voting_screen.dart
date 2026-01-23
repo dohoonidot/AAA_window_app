@@ -1199,8 +1199,15 @@ class _VotingScreenState extends ConsumerState<VotingScreen>
     final themeState = ref.watch(themeProvider);
     final isDark = themeState.colorScheme.name == 'Dark';
 
-    return WillPopScope(
-      onWillPop: _handleBackNavigation,
+    return PopScope(
+      canPop: _activeDisplay != 'results',
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _activeDisplay == 'results') {
+          setState(() {
+            _activeDisplay = 'submissions';
+          });
+        }
+      },
       child: Scaffold(
         backgroundColor:
             isDark ? const Color(0xFF343541) : const Color(0xFFF7F7F8),
@@ -2356,12 +2363,12 @@ class _VotingScreenState extends ConsumerState<VotingScreen>
               setLocalState(() {});
 
               // 좋아요를 누른 경우에만 화려한 이펙트 표시
-              if (isNowLiked && mounted) {
+              if (isNowLiked && context.mounted) {
                 _showLikeEffect(context);
               }
 
               // 좋아요 누른 경우에만 스낵바 표시
-              if (isNowLiked && mounted) {
+              if (isNowLiked && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -2383,7 +2390,7 @@ class _VotingScreenState extends ConsumerState<VotingScreen>
                 );
               }
             } catch (e) {
-              if (mounted) {
+              if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('좋아요 처리 중 오류가 발생했습니다: $e'),

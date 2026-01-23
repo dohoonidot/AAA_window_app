@@ -199,7 +199,7 @@ class MarkdownTableWidget extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -422,7 +422,7 @@ class _VacationRecommendationPopupState
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -599,7 +599,7 @@ class _VacationRecommendationPopupState
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkTheme ? 0.3 : 0.08),
+            color: Colors.black.withValues(alpha: isDarkTheme ? 0.3 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -734,7 +734,7 @@ class _VacationRecommendationPopupState
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkTheme ? 0.3 : 0.08),
+            color: Colors.black.withValues(alpha: isDarkTheme ? 0.3 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -831,7 +831,7 @@ class _VacationRecommendationPopupState
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isDarkTheme
-            ? const Color(0xFF1E1E1E).withOpacity(0.6)
+            ? const Color(0xFF1E1E1E).withValues(alpha: 0.6)
             : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -1009,7 +1009,7 @@ class _VacationRecommendationPopupState
               ),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF667EEA).withOpacity(0.3),
+                color: const Color(0xFF667EEA).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -1215,7 +1215,7 @@ class _VacationRecommendationPopupState
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkTheme ? 0.3 : 0.08),
+            color: Colors.black.withValues(alpha: isDarkTheme ? 0.3 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1466,13 +1466,13 @@ class _VacationRecommendationPopupState
         borderRadius: BorderRadius.circular(VacationUIRadius.medium),
         border: Border.all(
           color: isDarkTheme
-              ? const Color(0xFF505050).withOpacity(0.5)
+              ? const Color(0xFF505050).withValues(alpha: 0.5)
               : const Color(0xFFE0E0E0),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkTheme ? 0.3 : 0.05),
+            color: Colors.black.withValues(alpha: isDarkTheme ? 0.3 : 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1483,8 +1483,8 @@ class _VacationRecommendationPopupState
         child: InkWell(
           onTap: () => Navigator.of(context).pop(),
           borderRadius: BorderRadius.circular(VacationUIRadius.medium),
-          splashColor: const Color(0xFF667EEA).withOpacity(0.1),
-          highlightColor: const Color(0xFF667EEA).withOpacity(0.05),
+          splashColor: const Color(0xFF667EEA).withValues(alpha: 0.1),
+          highlightColor: const Color(0xFF667EEA).withValues(alpha: 0.05),
           child: Center(
             child: Text(
               '닫기',

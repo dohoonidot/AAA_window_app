@@ -113,13 +113,13 @@ class CodingAssistantPage extends ConsumerWidget {
                   child: Theme(
                     data: Theme.of(context).copyWith(
                       scrollbarTheme: ScrollbarThemeData(
-                        thumbColor: MaterialStateProperty.all(Colors.grey[400]),
+                        thumbColor: WidgetStateProperty.all(Colors.grey[400]),
                         trackColor:
-                            MaterialStateProperty.all(Colors.transparent),
-                        thickness: MaterialStateProperty.all(8.0),
+                            WidgetStateProperty.all(Colors.transparent),
+                        thickness: WidgetStateProperty.all(8.0),
                         radius: const Radius.circular(4),
-                        thumbVisibility: MaterialStateProperty.all(false),
-                        trackVisibility: MaterialStateProperty.all(false),
+                        thumbVisibility: WidgetStateProperty.all(false),
+                        trackVisibility: WidgetStateProperty.all(false),
                       ),
                     ),
                     child: Scrollbar(
@@ -415,18 +415,18 @@ class CodingAssistantPage extends ConsumerWidget {
                               child: Theme(
                                 data: Theme.of(context).copyWith(
                                   scrollbarTheme: ScrollbarThemeData(
-                                    thumbColor: MaterialStatePropertyAll(
+                                    thumbColor: WidgetStatePropertyAll(
                                       Colors.grey[600],
                                     ),
                                     thickness:
-                                        const MaterialStatePropertyAll(6.0),
+                                        const WidgetStatePropertyAll(6.0),
                                     radius: const Radius.circular(4),
                                     thumbVisibility:
-                                        const MaterialStatePropertyAll(
+                                        const WidgetStatePropertyAll(
                                       false,
                                     ),
                                     trackVisibility:
-                                        const MaterialStatePropertyAll(
+                                        const WidgetStatePropertyAll(
                                       false,
                                     ),
                                   ),
@@ -492,7 +492,7 @@ class CodingAssistantPage extends ConsumerWidget {
                                                         materialTapTargetSize:
                                                             MaterialTapTargetSize
                                                                 .shrinkWrap,
-                                                        activeColor:
+                                                        activeThumbColor:
                                                             Theme.of(context)
                                                                 .colorScheme
                                                                 .primary,

@@ -178,8 +178,8 @@ class VacationCalendarGrid extends StatelessWidget {
             ? null
             : Border.all(
                 color: isDarkTheme
-                    ? Colors.grey[700]!.withOpacity(0.3)
-                    : Colors.grey[300]!.withOpacity(0.5),
+                    ? Colors.grey[700]!.withValues(alpha: 0.3)
+                    : Colors.grey[300]!.withValues(alpha: 0.5),
                 width: 1,
               ),
       ),
@@ -347,7 +347,7 @@ class ConsecutivePeriodsTable extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4A90E2).withOpacity(0.2),
+                          color: const Color(0xFF4A90E2).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

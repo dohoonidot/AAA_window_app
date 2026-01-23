@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
-import 'package:ASPN_AI_AGENT/provider/leave_management_provider.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/features/leave/providers/leave_management_provider.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:intl/intl.dart';
 

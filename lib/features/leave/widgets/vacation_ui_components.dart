@@ -101,8 +101,8 @@ class GradientCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
           color: isDarkTheme
-              ? const Color(0xFF505050).withOpacity(0.5)
-              : const Color(0xFFE9ECEF).withOpacity(0.5),
+              ? const Color(0xFF505050).withValues(alpha: 0.5)
+              : const Color(0xFFE9ECEF).withValues(alpha: 0.5),
           width: 1.5,
         ),
         boxShadow: VacationUIShadows.cardShadow(isDarkTheme),

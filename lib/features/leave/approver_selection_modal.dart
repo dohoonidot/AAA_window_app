@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ASPN_AI_AGENT/models/leave_management_models.dart';
+import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart';
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 
 /// 승인자 선택 모달
