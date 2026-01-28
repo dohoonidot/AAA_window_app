@@ -316,7 +316,7 @@ class _AdminCalendarSidebarState extends ConsumerState<AdminCalendarSidebar>
 
   /// 휴가총괄관리 페이지로 이동
   void _navigateToVacationManagement() {
-    const webUrl = 'http://210.107.96.193:9999/pages/vacation-admin.html';
+    const webUrl = 'http://210.107.96.193:9999/pages/vacation-requests.html';
     Navigator.push(
       context,
       MaterialPageRoute(
