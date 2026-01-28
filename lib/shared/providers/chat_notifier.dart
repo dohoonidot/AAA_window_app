@@ -528,31 +528,43 @@ class ChatNotifier extends StateNotifier<ChatState> {
     String archiveId, {
     bool notifyUI = true,
   }) async {
+    debugPrint('=== deleteArchive 시작 ===');
+    debugPrint('archiveId: $archiveId');
+    debugPrint('notifyUI: $notifyUI');
     try {
       // 1. 서버 DB에서 먼저 삭제
+      debugPrint('1. 서버 삭제 시작...');
       await ApiService.deleteArchive(archiveId);
+      debugPrint('1. 서버 삭제 완료');
 
       // 2. 서버 성공 후 로컬 DB에서 삭제
+      debugPrint('2. 로컬 DB 삭제 시작...');
       await _dbHelper.deleteArchive(archiveId);
+      debugPrint('2. 로컬 DB 삭제 완료');
 
       if (notifyUI) {
         // 로컬 DB에서 최신 아카이브 목록 가져오기 (변경)
+        debugPrint('3. 아카이브 목록 새로고침 시작...');
         await getArchiveListAll(userId);
+        debugPrint('3. 아카이브 목록 새로고침 완료');
 
         // 삭제된 아카이브가 현재 선택된 아카이브였다면
         if (archiveId == state.selectedTopic &&
             state.arvChatHistory.isNotEmpty) {
           final topArchive = state.arvChatHistory.first;
           await selectTopic(topArchive['archive_id']);
-          print('최상단 아카이브로 선택 변경: ${topArchive['archive_id']}');
+          debugPrint('4. 최상단 아카이브로 선택 변경: ${topArchive['archive_id']}');
         }
 
         if (context.mounted) {
           CommonUIUtils.showInfoSnackBar(context, '대화가 삭제되었습니다.');
         }
+        debugPrint('=== deleteArchive 완료 ===');
       }
-    } catch (e) {
-      print('아카이브 삭제 실패 (ID: $archiveId): $e');
+    } catch (e, stackTrace) {
+      debugPrint('=== deleteArchive 실패 ===');
+      debugPrint('아카이브 삭제 실패 (ID: $archiveId): $e');
+      debugPrint('스택트레이스: $stackTrace');
       if (context.mounted && notifyUI) {
         CommonUIUtils.showErrorSnackBar(context, '삭제 중 오류가 발생했습니다.');
       }

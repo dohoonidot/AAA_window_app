@@ -1086,7 +1086,7 @@ class SidebarState extends ConsumerState<Sidebar>
   }
 
   // _showDeleteConfirmDialog 메서드 수정
-  void _showDeleteConfirmDialog(BuildContext context, String topicId) {
+  Future<void> _showDeleteConfirmDialog(BuildContext context, String topicId) async {
     // 아카이브 정보 확인
     final archive = widget.arvHistory.firstWhere(
       (a) => a['archive_id'] == topicId,
@@ -1111,23 +1111,34 @@ class SidebarState extends ConsumerState<Sidebar>
         ? '기본 아카이브의 대화 내용을 초기화하시겠습니까?\n새로운 동일 유형의 아카이브가 생성됩니다.'
         : '이 대화를 삭제하시겠습니까?';
 
-    CommonUIUtils.showConfirmDialog(
+    final confirmed = await CommonUIUtils.showConfirmDialog(
       context,
       dialogTitle,
       dialogContent,
-    ).then((confirmed) {
-      if (confirmed == true) {
-        if (!context.mounted) return;
-        if (isDefaultArchive) {
-          // 기본 아카이브인 경우 삭제 후 재생성
-          _deleteAndRecreateDefaultArchive(
-              context, topicId, archiveType, topic);
-        } else {
-          // 일반 아카이브는 그냥 삭제
-          widget.onDeleteTopic(topicId);
-        }
+    );
+
+    debugPrint('=== 삭제 확인 다이얼로그 결과 ===');
+    debugPrint('confirmed: $confirmed');
+    debugPrint('topicId: $topicId');
+    debugPrint('isDefaultArchive: $isDefaultArchive');
+    debugPrint('mounted: $mounted');
+
+    if (confirmed == true) {
+      if (!mounted) {
+        debugPrint('widget unmounted, 삭제 중단');
+        return;
       }
-    });
+      if (isDefaultArchive) {
+        // 기본 아카이브인 경우 삭제 후 재생성
+        debugPrint('기본 아카이브 삭제 후 재생성 호출');
+        _deleteAndRecreateDefaultArchive(
+            context, topicId, archiveType, topic);
+      } else {
+        // 일반 아카이브는 그냥 삭제
+        debugPrint('일반 아카이브 삭제 호출: onDeleteTopic($topicId)');
+        widget.onDeleteTopic(topicId);
+      }
+    }
   }
 
   // 새로운 메서드: 기본 아카이브 삭제 후 재생성

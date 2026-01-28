@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:ASPN_AI_AGENT/core/database/database_helper.dart'; // 로컬 DB 헬퍼 임포트
 import 'package:ASPN_AI_AGENT/core/config/app_config.dart';
 import 'package:ASPN_AI_AGENT/shared/models/leave_management_models.dart'; // 공휴일 모델 임포트
@@ -164,9 +165,12 @@ class ApiService {
 
     try {
       // 서버 삭제 요청
+      debugPrint('=== API deleteArchive 호출 ===');
+      debugPrint('URL: $url');
+      debugPrint('Body: $body');
       final response = await http.post(url, headers: headers, body: body);
-      print('Delete Archive Response Status: ${response.statusCode}');
-      print('Delete Archive Response Body: ${response.body}');
+      debugPrint('Delete Archive Response Status: ${response.statusCode}');
+      debugPrint('Delete Archive Response Body: ${response.body}');
 
       if (response.statusCode == 204) {
         // 서버에서 성공적으로 삭제됨

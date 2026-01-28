@@ -902,92 +902,93 @@ class DatabaseHelper {
     try {
       print('아카이브 리스트 동기화 시작 (사용자: $userId)');
 
-      // 1. 로컬 DB에서 해당 사용자의 가장 높은 serial 번호 찾기
-      final localMaxSerial = await getLocalArchiveMaxSerial(userId);
-      print('로컬 DB의 최대 serial 번호: $localMaxSerial');
-
-      // 2. 서버에서 최대 serial 번호 가져오기
-      final serverMaxSerial = await ApiService.getMaxSerial(userId);
-      print('서버의 최대 serial 번호: $serverMaxSerial');
-
-      // 3. 서버와 로컬의 max serial이 같으면 동기화 불필요
-      if (serverMaxSerial <= localMaxSerial) {
-        print('동기화 불필요: 서버와 로컬의 max serial이 같거나 로컬이 더 큼');
-        return {
-          'success': true,
-          'synchronized': false,
-          'reason': '동기화 불필요 (로컬 데이터가 최신)',
-          'localMaxSerial': localMaxSerial,
-          'serverMaxSerial': serverMaxSerial
-        };
-      }
-
-      // 4. 동기화 필요: 서버의 해당 사용자 아카이브 목록 가져오기
+      // 1. 서버의 전체 아카이브 목록 가져오기 (항상 가져옴 - 삭제/수정 동기화 위해)
       final serverArchives = await ApiService.getArchiveListFromServer(userId);
       print('서버에서 가져온 사용자 아카이브 수: ${serverArchives.length}');
 
-      // 5. 로컬 DB에서 이미 가지고 있는 아카이브 ID 목록 가져오기
+      // 2. 로컬 DB에서 해당 사용자의 아카이브 목록 가져오기
       final db = await DatabaseHelper().database;
-
-      // 전체 로컬 아카이브 조회
-      final allLocalArchives = await db.query('local_archives');
-      print('전체 로컬 아카이브 개수: ${allLocalArchives.length}');
-
-      // user_id 필터링된 아카이브 조회
       final localArchives = await db.query('local_archives',
-          columns: ['archive_id', 'id', 'user_id'],
           where: 'user_id = ?',
           whereArgs: [userId]);
+      print('로컬 아카이브 개수: ${localArchives.length}');
 
-      print('user_id가 "$userId"인 로컬 아카이브 개수: ${localArchives.length}');
-
-      // archive_id를 키로 하는 맵 생성 (중복 검사용)
-      final localArchiveMap = {
-        for (var archive in localArchives)
-          archive['archive_id'].toString(): archive['id']
+      // 3. 서버 아카이브를 archive_id 기준 맵으로 변환
+      final serverArchiveMap = {
+        for (var archive in serverArchives)
+          archive['archive_id'].toString(): archive
       };
 
-      print('로컬 아카이브 맵 크기: ${localArchiveMap.length}');
+      // 4. 로컬 아카이브를 archive_id 기준 맵으로 변환
+      final localArchiveMap = {
+        for (var archive in localArchives)
+          archive['archive_id'].toString(): archive
+      };
 
-      // 서버 아카이브 ID 목록 출력
-      final serverArchiveIds =
-          serverArchives.map((a) => a['archive_id']).toList();
-      print('서버 아카이브 ID 목록 (전체): $serverArchiveIds');
+      // === 삭제 동기화: 서버에 없는 로컬 아카이브 삭제 ===
+      final archivesToDelete = localArchives
+          .where((local) => !serverArchiveMap.containsKey(local['archive_id'].toString()))
+          .map((local) => local['archive_id'].toString())
+          .toList();
 
-      // ID 값을 Set으로 만들어 빠른 포함 여부 확인
-      localArchives.map((a) => a['id'] as int).toSet();
+      int deletedCount = 0;
+      if (archivesToDelete.isNotEmpty) {
+        print('삭제할 아카이브 수: ${archivesToDelete.length}');
+        await db.transaction((txn) async {
+          for (var archiveId in archivesToDelete) {
+            // 채팅 내역도 함께 삭제 (외래키 CASCADE가 없는 경우 대비)
+            await txn.delete('local_archive_details',
+                where: 'archive_id = ?', whereArgs: [archiveId]);
+            await txn.delete('local_archives',
+                where: 'archive_id = ?', whereArgs: [archiveId]);
+            deletedCount++;
+            print('아카이브 삭제됨: $archiveId');
+          }
+        });
+      }
 
-      // 6. 로컬에 없는 아카이브 중 ID가 localMaxSerial보다 큰 것만 필터링
-      final newArchives = serverArchives.where((archive) {
-        // archive['id']의 값을 그대로 사용
-        final serialId = archive['id'] as int;
-        final archiveId = archive['archive_id'].toString();
+      // === 수정 동기화: 아카이브명이 다른 경우 업데이트 ===
+      int updatedCount = 0;
+      await db.transaction((txn) async {
+        for (var serverArchive in serverArchives) {
+          final archiveId = serverArchive['archive_id'].toString();
+          final localArchive = localArchiveMap[archiveId];
 
-        // 로컬에 없는 아카이브만 추가
-        final isNewArchive = !localArchiveMap.containsKey(archiveId);
+          if (localArchive != null) {
+            // 로컬에 존재하는 아카이브 - 이름 비교
+            final serverName = serverArchive['archive_name']?.toString() ?? '';
+            final localName = localArchive['archive_name']?.toString() ?? '';
 
-        // 디버그 로그 추가 - id 값을 정확히 출력
-        print(
-            'Archive Check: id=$serialId, archiveId=$archiveId, isNewArchive=$isNewArchive');
+            if (serverName != localName) {
+              await txn.update(
+                'local_archives',
+                {'archive_name': serverName},
+                where: 'archive_id = ?',
+                whereArgs: [archiveId],
+              );
+              updatedCount++;
+              print('아카이브명 업데이트: $archiveId ($localName → $serverName)');
+            }
+          }
+        }
+      });
 
-        // 새로운 아카이브는 serial ID와 상관없이 추가
-        return isNewArchive;
-      }).toList();
-      print(newArchives);
+      // === 추가 동기화: 서버에만 있는 새 아카이브 추가 ===
+      final newArchives = serverArchives
+          .where((archive) => !localArchiveMap.containsKey(archive['archive_id'].toString()))
+          .toList();
       print('추가할 새 아카이브 수: ${newArchives.length}');
 
       // ID가 존재하는 순으로 정렬 (낮은 ID부터)
       newArchives.sort((a, b) => (a['id'] as int).compareTo(b['id'] as int));
 
-      // 7. 새 아카이브를 로컬 DB에 배치 삽입 (한 번의 트랜잭션으로)
       int addedCount = 0;
       if (newArchives.isNotEmpty) {
         await db.transaction((txn) async {
           for (var archive in newArchives) {
-            // INSERT OR REPLACE를 사용하여 UNIQUE 제약 위반 방지
             await txn.rawInsert('''
-              INSERT OR REPLACE INTO local_archives 
-              (archive_id, id, user_id, archive_name, archive_type, archive_time) 
+              INSERT OR REPLACE INTO local_archives
+              (archive_id, id, user_id, archive_name, archive_type, archive_time)
               VALUES (?, ?, ?, ?, ?, ?)
             ''', [
               archive['archive_id'],
@@ -998,23 +999,23 @@ class DatabaseHelper {
               archive['archive_time'],
             ]);
             addedCount++;
-
-            // 삽입 내용 로그
-            print(
-                '아카이브 추가: ID=${archive['id']}, 이름=${archive['archive_name']}');
+            print('아카이브 추가: ID=${archive['id']}, 이름=${archive['archive_name']}');
           }
         });
       }
 
-      print(
-          '동기화 완료: $addedCount개 아카이브 추가됨 (ID 범위: ${localMaxSerial + 1}~$serverMaxSerial)');
+      // 동기화 여부 판단 (추가, 삭제, 수정 중 하나라도 있으면 동기화 됨)
+      final wasSynchronized = addedCount > 0 || deletedCount > 0 || updatedCount > 0;
+
+      print('동기화 완료: 추가=$addedCount, 삭제=$deletedCount, 수정=$updatedCount');
       return {
         'success': true,
-        'synchronized': true,
+        'synchronized': wasSynchronized,
         'addedCount': addedCount,
-        'localMaxSerial': localMaxSerial,
-        'serverMaxSerial': serverMaxSerial,
+        'deletedCount': deletedCount,
+        'updatedCount': updatedCount,
         'addedIds': newArchives.map((a) => a['id']).toList(),
+        'deletedIds': archivesToDelete,
       };
     } catch (e) {
       print('아카이브 동기화 중 오류 발생: $e');
@@ -1037,30 +1038,38 @@ class DatabaseHelper {
       // 1. 아카이브 리스트 먼저 동기화
       final listSyncResult = await syncArchivesBySerialGap(userId);
 
-      // 2. 동기화 실패 또는 불필요한 경우 바로 결과 반환
+      // 2. 동기화 실패 시 바로 결과 반환
       if (!listSyncResult['success']) {
         print('아카이브 리스트 동기화 실패: ${listSyncResult['error']}');
         return listSyncResult;
       }
 
-      if (!listSyncResult['synchronized']) {
-        print('아카이브 리스트 동기화 불필요: ${listSyncResult['reason']}');
+      // 삭제/수정 결과 로그
+      final deletedCount = listSyncResult['deletedCount'] ?? 0;
+      final updatedCount = listSyncResult['updatedCount'] ?? 0;
+      if (deletedCount > 0 || updatedCount > 0) {
+        print('동기화 결과 - 삭제: $deletedCount개, 수정: $updatedCount개');
+      }
+
+      // 새로 추가된 아카이브가 없으면 디테일 동기화 건너뛰기
+      final addedIds = listSyncResult['addedIds'] as List<dynamic>? ?? [];
+      if (addedIds.isEmpty) {
+        print('새로 추가된 아카이브 없음 - 디테일 동기화 생략');
         return {
           ...listSyncResult,
           'detailsSynchronized': false,
-          'detailReason': '아카이브 리스트 동기화가 불필요하여 디테일 동기화 생략'
+          'detailReason': '새로 추가된 아카이브가 없어 디테일 동기화 생략'
         };
       }
 
       // 3. 새로 추가된 아카이브만 디테일 동기화 진행
-      final addedArchiveIds = listSyncResult['addedIds'] as List<dynamic>;
-      print('디테일 동기화가 필요한 아카이브 수: ${addedArchiveIds.length}개');
+      print('디테일 동기화가 필요한 아카이브 수: ${addedIds.length}개');
 
       final detailResults = <String, dynamic>{};
       int totalChatsAdded = 0;
 
       // 4. 각 새 아카이브의 채팅 내역 가져오기
-      for (var id in addedArchiveIds) {
+      for (var id in addedIds) {
         // id를 문자열로 변환하여 archiveId로 직접 사용하지 말고, archive_id를 DB에서 조회
         final db = await DatabaseHelper().database;
         final archiveResult = await db.query(
@@ -1097,7 +1106,7 @@ class DatabaseHelper {
       }
 
       print(
-          '아카이브 통합 동기화 완료: ${addedArchiveIds.length}개 아카이브, $totalChatsAdded개 채팅 추가');
+          '아카이브 통합 동기화 완료: ${addedIds.length}개 아카이브 추가, $totalChatsAdded개 채팅 추가');
 
       // 5. 최종 결과 반환
       return {
