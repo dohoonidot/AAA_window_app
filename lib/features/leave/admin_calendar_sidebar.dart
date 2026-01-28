@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ASPN_AI_AGENT/shared/services/leave_api_service.dart';
 import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import 'package:ASPN_AI_AGENT/features/leave/leave_models.dart';
+import 'package:ASPN_AI_AGENT/ui/screens/vacation_management_webview_screen.dart';
 
 class AdminCalendarSidebar extends ConsumerStatefulWidget {
   final bool isExpanded;
@@ -226,6 +227,9 @@ class _AdminCalendarSidebarState extends ConsumerState<AdminCalendarSidebar>
 
               // 부서원 휴가 현황 버튼 (충분히 확장되었을 때만 표시)
               if (isFullyExpanded) _buildLeaveStatusButton(),
+
+              // 휴가총괄관리 버튼 (permission 0, 1, 2인 경우에만 표시)
+              if (isFullyExpanded) _buildVacationManagementButton(),
             ],
           ),
         );
@@ -259,6 +263,65 @@ class _AdminCalendarSidebarState extends ConsumerState<AdminCalendarSidebar>
           ),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
+        ),
+      ),
+    );
+  }
+
+  /// 휴가총괄관리 권한 체크 (permission 값이 0, 1, 2인 경우)
+  bool _hasVacationManagementPermission() {
+    final permission = ref.read(permissionProvider);
+    return permission == 0 || permission == 1 || permission == 2;
+  }
+
+  /// 휴가총괄관리(웹) 버튼
+  Widget _buildVacationManagementButton() {
+    // permission이 0, 1, 2인 경우에만 표시
+    if (!_hasVacationManagementPermission()) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () => _navigateToVacationManagement(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF4A6CF7),
+            foregroundColor: Colors.white,
+            elevation: 2,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          icon: const Icon(
+            Icons.open_in_new,
+            size: 18,
+          ),
+          label: const Text(
+            '휴가총괄관리(웹)',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 휴가총괄관리 페이지로 이동
+  void _navigateToVacationManagement() {
+    const webUrl = 'http://210.107.96.193:9999/pages/vacation-admin.html';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VacationManagementWebViewScreen(
+          webUrl: webUrl,
         ),
       ),
     );

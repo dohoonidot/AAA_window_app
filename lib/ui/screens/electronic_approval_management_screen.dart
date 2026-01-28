@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'approval_detail_modal.dart';
 import 'vacation_management_webview_screen.dart';
-import 'package:ASPN_AI_AGENT/shared/providers/providers.dart';
 import '../../features/approval/common_electronic_approval_modal.dart';
 
 // 더미 데이터 모델
@@ -157,12 +156,6 @@ class _ElectronicApprovalManagementScreenState
     _hoverTimer?.cancel();
     _exitTimer?.cancel();
     super.dispose();
-  }
-
-  /// 휴가부여 권한 체크 (permission 값이 0 또는 1인 경우)
-  bool _hasVacationGrantPermission() {
-    final permission = ref.read(permissionProvider);
-    return permission == 0 || permission == 1;
   }
 
   /// 휴가 총괄 관리 페이지로 이동
@@ -502,18 +495,6 @@ class _ElectronicApprovalManagementScreenState
                     selectedMenu,
                     menuExpanded,
                   ),
-                  // 휴가부여 권한이 있는 경우에만 표시 (permission이 0 또는 1)
-                  if (_hasVacationGrantPermission())
-                    _buildMenuItem(
-                      context,
-                      ref,
-                      '휴가 부여',
-                      Icons.card_giftcard_rounded,
-                      ['휴가 총괄 관리'],
-                      isExpanded,
-                      selectedMenu,
-                      menuExpanded,
-                    ),
                 ],
               ),
             ),

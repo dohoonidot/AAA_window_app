@@ -66,17 +66,29 @@ class _VacationManagementWebViewScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    final appBarBg = isDarkTheme
+        ? const Color(0xFF2D2D2D)
+        : Colors.white;
+    final appBarFg = isDarkTheme
+        ? Colors.white
+        : const Color(0xFF1A1D1F);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('휴가 총괄 관리'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1A1D1F),
+        title: Text(
+          '휴가 총괄 관리',
+          style: TextStyle(color: appBarFg),
+        ),
+        backgroundColor: appBarBg,
+        foregroundColor: appBarFg,
+        iconTheme: IconThemeData(color: appBarFg, size: 24),
         elevation: 1,
-        shadowColor: Colors.black12,
+        shadowColor: isDarkTheme ? Colors.black26 : Colors.black12,
         surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: appBarFg),
             onPressed: _reload,
             tooltip: '새로고침',
           ),
@@ -96,19 +108,23 @@ class _VacationManagementWebViewScreenState
                 if (isLoading)
                   Positioned.fill(
                     child: Container(
-                      color: Colors.white,
-                      child: const Center(
+                      color: isDarkTheme
+                          ? const Color(0xFF1A1A1A)
+                          : Colors.white,
+                      child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircularProgressIndicator(
+                            const CircularProgressIndicator(
                               color: Color(0xFF4A6CF7),
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             Text(
                               '휴가 관리 페이지를 불러오는 중...',
                               style: TextStyle(
-                                color: Color(0xFF6C757D),
+                                color: isDarkTheme
+                                    ? Colors.grey[400]
+                                    : const Color(0xFF6C757D),
                                 fontSize: 16,
                               ),
                             ),
