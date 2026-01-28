@@ -1482,9 +1482,14 @@ class _LeaveRequestManualModalState
                 .read(leaveManagementProvider.notifier)
                 .loadLeaveManagementData(currentUserId);
 
-            // 제출 완료 시 모달 완전히 닫기
+            // 제출 완료 시 모달 완전히 닫기 (성공 메시지는 이미 표시됨)
             await _slideController.reverse();
-            _closeModal();
+            if (widget.onClose != null) {
+              widget.onClose!();
+            }
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
           }
         } else {
           if (mounted) {
