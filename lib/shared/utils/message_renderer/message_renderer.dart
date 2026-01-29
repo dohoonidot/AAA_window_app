@@ -177,7 +177,7 @@ class MessageRenderer {
       // 첨부 파일이 있으면 이미지 표시
       if (attachments.isNotEmpty) {
         messageWidgets.add(const SizedBox(height: 8));
-        messageWidgets.add(_buildAttachmentDisplay(attachments));
+        messageWidgets.add(_buildAttachmentDisplay(attachments, themeColors));
       }
 
       if (messageWidgets.length == 1) {
@@ -411,7 +411,8 @@ class MessageRenderer {
   }
 
   /// 첨부 파일 표시 위젯 생성
-  static Widget _buildAttachmentDisplay(List<dynamic> attachments) {
+  static Widget _buildAttachmentDisplay(
+      List<dynamic> attachments, AppColorScheme? themeColors) {
     // 이미지와 일반 파일 분리
     List<dynamic> imageAttachments = [];
     List<dynamic> fileAttachments = [];
@@ -438,7 +439,7 @@ class MessageRenderer {
       final String mimeType = attachment['mimeType'] ?? '';
       final int fileSize = attachment['size'] ?? 0;
 
-      widgets.add(_buildFileAttachment(fileName, mimeType, fileSize));
+      widgets.add(_buildFileAttachment(fileName, mimeType, fileSize, themeColors));
 
       if (attachment != fileAttachments.last) {
         widgets.add(const SizedBox(height: 8));
@@ -458,26 +459,47 @@ class MessageRenderer {
 
   /// 일반 파일 첨부 위젯
   static Widget _buildFileAttachment(
-      String fileName, String mimeType, int fileSize) {
+      String fileName, String mimeType, int fileSize, AppColorScheme? themeColors) {
+    // 다크모드 여부 확인 (name이 'Light'가 아니면 다크모드)
+    final isDarkMode = themeColors != null && themeColors.name != 'Light';
+    
     IconData fileIcon;
+    Color iconColor;
     if (mimeType.contains('pdf')) {
       fileIcon = Icons.picture_as_pdf;
+      iconColor = isDarkMode ? Colors.red[300]! : Colors.red[600]!;
     } else if (mimeType.contains('text')) {
       fileIcon = Icons.text_snippet;
+      iconColor = isDarkMode ? Colors.blue[300]! : Colors.blue[600]!;
     } else {
       fileIcon = Icons.insert_drive_file;
+      iconColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
     }
+
+    // 다크모드에 따른 색상 설정
+    final backgroundColor = isDarkMode 
+        ? const Color(0xFF3A3A3A) 
+        : Colors.grey[100];
+    final borderColor = isDarkMode 
+        ? const Color(0xFF505050) 
+        : Colors.grey.withValues(alpha: 0.3);
+    final fileNameColor = isDarkMode 
+        ? Colors.white 
+        : Colors.black87;
+    final fileSizeColor = isDarkMode 
+        ? Colors.grey[400] 
+        : Colors.grey[600];
 
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
-          Icon(fileIcon, size: 20, color: Colors.grey[600]),
+          Icon(fileIcon, size: 20, color: iconColor),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -485,13 +507,16 @@ class MessageRenderer {
               children: [
                 Text(
                   fileName,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: fileNameColor,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   '${(fileSize / 1024).toStringAsFixed(1)}KB',
-                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 10, color: fileSizeColor),
                 ),
               ],
             ),
