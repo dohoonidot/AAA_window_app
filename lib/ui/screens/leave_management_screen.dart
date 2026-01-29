@@ -1155,7 +1155,8 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
           ),
           context.rsw(16),
           Container(
-            padding: _getResponsivePadding(context, horizontal: 12, vertical: 4),
+            padding:
+                _getResponsivePadding(context, horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFF1E88E5).withValues(alpha: 0.12),
               borderRadius: context.rbr(8),
@@ -1305,7 +1306,8 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                 // AI 휴가 추천 버튼
                 ElevatedButton.icon(
                   onPressed: () => _showVacationRecommendationModal(),
-                  icon: Icon(Icons.auto_awesome, size: _getResponsiveIconSize(context, 16)),
+                  icon: Icon(Icons.auto_awesome,
+                      size: _getResponsiveIconSize(context, 16)),
                   label: Text(
                     '내 휴가계획 AI 추천',
                     style: TextStyle(
@@ -1316,7 +1318,8 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4A90E2),
                     foregroundColor: Colors.white,
-                    padding: _getResponsivePadding(context, horizontal: 12, vertical: 8),
+                    padding: _getResponsivePadding(context,
+                        horizontal: 12, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: context.rbr(6),
                     ),
@@ -1326,7 +1329,8 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                 context.rsw(12),
                 // 연도 선택 드롭다운
                 Container(
-                  padding: _getResponsivePadding(context, horizontal: 8, vertical: 4),
+                  padding: _getResponsivePadding(context,
+                      horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isDarkTheme
                         ? const Color(0xFF3A3A3A)
@@ -2909,8 +2913,10 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                 ...leaveBalances.take(3).map((balance) {
                   return Expanded(
                     child: Container(
-                      margin: EdgeInsets.only(right: _getResponsiveSize(context, 6)),
-                      padding: _getResponsivePadding(context, horizontal: 6, vertical: 6),
+                      margin: EdgeInsets.only(
+                          right: _getResponsiveSize(context, 6)),
+                      padding: _getResponsivePadding(context,
+                          horizontal: 6, vertical: 6),
                       decoration: BoxDecoration(
                         color: isDarkTheme
                             ? const Color(0xFF3A3A3A)
