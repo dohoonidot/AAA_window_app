@@ -641,26 +641,29 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
   /// 휴가 취소 상신 다이얼로그 (LeaveRequestHistory용)
   void _showCancelRequestDialogFromHistory(LeaveRequestHistory request) {
     final TextEditingController reasonController = TextEditingController();
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDarkTheme ? const Color(0xFF2D2D2D) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         title: Row(
-          children: const [
-            Icon(
+          children: [
+            const Icon(
               Icons.cancel_outlined,
               color: Color(0xFFE53E3E),
               size: 24,
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Text(
               '휴가 취소 상신',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
+                color: isDarkTheme ? Colors.white : const Color(0xFF1A1D29),
               ),
             ),
           ],
@@ -673,22 +676,35 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
+                color: isDarkTheme
+                    ? const Color(0xFF3A3A3A)
+                    : const Color(0xFFF8F9FA),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDarkTheme
+                      ? const Color(0xFF505050)
+                      : const Color(0xFFE9ECEF),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.event,
-                          size: 16, color: Color(0xFF6B7280)),
+                      Icon(Icons.event,
+                          size: 16,
+                          color: isDarkTheme
+                              ? Colors.grey[400]
+                              : const Color(0xFF6B7280)),
                       const SizedBox(width: 8),
                       Text(
                         request.vacationType,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
+                          color: isDarkTheme
+                              ? Colors.white
+                              : const Color(0xFF1A1D29),
                         ),
                       ),
                     ],
@@ -696,24 +712,40 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today,
-                          size: 16, color: Color(0xFF6B7280)),
+                      Icon(Icons.calendar_today,
+                          size: 16,
+                          color: isDarkTheme
+                              ? Colors.grey[400]
+                              : const Color(0xFF6B7280)),
                       const SizedBox(width: 8),
                       Text(
                         '${DateFormat('yyyy-MM-dd').format(request.startDate)} ~ ${DateFormat('yyyy-MM-dd').format(request.endDate)}',
-                        style: const TextStyle(fontSize: 13),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDarkTheme
+                              ? Colors.grey[300]
+                              : const Color(0xFF495057),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.access_time,
-                          size: 16, color: Color(0xFF6B7280)),
+                      Icon(Icons.access_time,
+                          size: 16,
+                          color: isDarkTheme
+                              ? Colors.grey[400]
+                              : const Color(0xFF6B7280)),
                       const SizedBox(width: 8),
                       Text(
                         '${request.days}일',
-                        style: const TextStyle(fontSize: 13),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDarkTheme
+                              ? Colors.grey[300]
+                              : const Color(0xFF495057),
+                        ),
                       ),
                     ],
                   ),
@@ -721,29 +753,63 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               '취소 사유를 입력해주세요:',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
+                color: isDarkTheme ? Colors.white : const Color(0xFF1A1D29),
               ),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: reasonController,
               maxLines: 4,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              style: TextStyle(
+                color: isDarkTheme ? Colors.white : Colors.black87,
+              ),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDarkTheme
+                        ? const Color(0xFF505050)
+                        : const Color(0xFFE9ECEF),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDarkTheme
+                        ? const Color(0xFF505050)
+                        : const Color(0xFFE9ECEF),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDarkTheme
+                        ? const Color(0xFF6B7280)
+                        : const Color(0xFF3B82F6),
+                    width: 2,
+                  ),
+                ),
+                filled: true,
+                fillColor: isDarkTheme
+                    ? const Color(0xFF3A3A3A)
+                    : Colors.white,
                 hintText: '예: 일정 변경으로 인한 휴가 취소',
-                contentPadding: EdgeInsets.all(12),
+                hintStyle: TextStyle(
+                  color: isDarkTheme
+                      ? Colors.grey[500]
+                      : const Color(0xFF9CA3AF),
+                ),
+                contentPadding: const EdgeInsets.all(12),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '※ 취소 상신 후 결재자의 승인이 필요합니다.',
               style: TextStyle(
                 fontSize: 11,
-                color: Color(0xFF6B7280),
+                color: isDarkTheme ? Colors.grey[400] : const Color(0xFF6B7280),
               ),
             ),
           ],
@@ -751,7 +817,12 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
+            child: Text(
+              '취소',
+              style: TextStyle(
+                color: isDarkTheme ? Colors.grey[400] : const Color(0xFF6B7280),
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -801,6 +872,7 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE53E3E),
+              foregroundColor: Colors.white,
             ),
             child: const Text('상신'),
           ),
