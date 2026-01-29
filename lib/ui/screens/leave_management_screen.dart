@@ -792,14 +792,11 @@ class _LeaveManagementScreenState extends ConsumerState<LeaveManagementScreen>
                   ),
                 ),
                 filled: true,
-                fillColor: isDarkTheme
-                    ? const Color(0xFF3A3A3A)
-                    : Colors.white,
+                fillColor: isDarkTheme ? const Color(0xFF3A3A3A) : Colors.white,
                 hintText: '예: 일정 변경으로 인한 휴가 취소',
                 hintStyle: TextStyle(
-                  color: isDarkTheme
-                      ? Colors.grey[500]
-                      : const Color(0xFF9CA3AF),
+                  color:
+                      isDarkTheme ? Colors.grey[500] : const Color(0xFF9CA3AF),
                 ),
                 contentPadding: const EdgeInsets.all(12),
               ),
